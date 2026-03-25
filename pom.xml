@@ -204,6 +204,12 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>3.0.0</version>
 			</plugin>
+			<!-- Allow running Flyway via: mvnw flyway:migrate -->
+			<plugin>
+				<groupId>org.flywaydb</groupId>
+				<artifactId>flyway-maven-plugin</artifactId>
+				<version>11.14.1</version>
+			</plugin>
 		</plugins>
 	</build>
 

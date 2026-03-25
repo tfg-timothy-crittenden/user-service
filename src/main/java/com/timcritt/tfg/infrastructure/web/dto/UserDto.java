@@ -1,11 +1,14 @@
 package com.timcritt.tfg.infrastructure.web.dto;
 
+import java.util.Set;
+
 public class UserDto {
     private Long id;
     private String username;
     private String name;
     private String surname;
     private String email;
+    private Set<RoleDto> roles;
 
     public Long getId() {
         return id;
@@ -45,5 +48,13 @@ public class UserDto {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public Set<RoleDto> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<RoleDto> roles) {
+        this.roles = roles;
     }
 }

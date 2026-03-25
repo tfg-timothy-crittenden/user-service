@@ -1,6 +1,10 @@
 package com.timcritt.tfg.domain.model;
 
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
+
+import com.timcritt.tfg.domain.model.Role;
 
 public class User {
 
@@ -9,15 +13,17 @@ public class User {
     private String name;
     private String surname;
     private String email;
+    private Set<Role> roles = new HashSet<>();
 
     public User() {}
 
-    public User(Long id, String username, String name, String surname, String email) {
+    public User(Long id, String username, String name, String surname, String email, Set<Role> Roles) {
         this.id = id;
         this.username = username;
         this.name = name;
         this.surname = surname;
         this.email = email;
+        this.roles = (Roles == null) ? new HashSet<>() : new HashSet<>(Roles);
     }
 
     public Long getId() {
@@ -63,6 +69,14 @@ public class User {
     public User setEmail(String email) {
         this.email = email;
         return this;
+    }
+
+    public Set<Role> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<Role> roles) {
+        this.roles = (roles == null) ? new HashSet<>() : new HashSet<>(roles);
     }
 
     @Override

@@ -1,27 +1,56 @@
-package com.timcritt.tfg.infrastructure.persistence;
+package com.timcritt.tfg.infrastructure.persistence.mapper;
 
+import com.timcritt.tfg.domain.model.Role;
 import com.timcritt.tfg.domain.model.User;
+import com.timcritt.tfg.infrastructure.persistence.RoleEntityMapper;
+import com.timcritt.tfg.infrastructure.persistence.jpa.RoleJpaEntity;
 import com.timcritt.tfg.infrastructure.persistence.jpa.UserJpaEntity;
 
-// This class provides static methods to convert between the domain model (TestItem) and the JPA entity (TestJpaEntity).
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-public final class UserEntityMapper {
-    private UserEntityMapper() {}
+public class UserEntityMapper {
 
-    public static User toDomain(UserJpaEntity e) {
-        if (e == null) return null;
-        return new User(e.getId(), e.getUsername(), e.getName(), e.getSurname(), e.getEmail());
+    public static User toDomain(UserJpaEntity entity) {
+        if (entity == null) return null;
+
+        Set<Role> roles = entity.getUserRoles() == null
+                ? new HashSet<>()
+                : entity.getUserRoles()
+                .stream()
+                .map(RoleEntityMapper::toDomain)
+                .collect(Collectors.toSet());
+
+        return new User(
+                entity.getId(),
+                entity.getUsername(),
+                entity.getName(),
+                entity.getSurname(),
+                entity.getEmail(),
+                roles
+        );
     }
 
-    public static UserJpaEntity toEntity(User d) {
-        if (d == null) return null;
-        UserJpaEntity e = new UserJpaEntity();
-        e.setId(d.getId());
-        e.setUsername(d.getUsername());
-        e.setName(d.getName());
-        e.setSurname(d.getSurname());
-        e.setEmail(d.getEmail());
-        return e;
+    public static UserJpaEntity toEntity(User domain) {
+        if (domain == null) return null;
+
+        UserJpaEntity entity = new UserJpaEntity();
+        entity.setId(domain.getId());
+        entity.setUsername(domain.getUsername());
+        entity.setName(domain.getName());
+        entity.setSurname(domain.getSurname());
+        entity.setEmail(domain.getEmail());
+
+        Set<RoleJpaEntity> roleEntities = domain.getRoles() == null
+                ? new HashSet<>()
+                : domain.getRoles()
+                .stream()
+                .map(RoleEntityMapper::toEntity)
+                .collect(Collectors.toSet());
+
+        entity.setUserRoles(roleEntities);
+
+        return entity;
     }
 }
-

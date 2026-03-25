@@ -1,13 +1,16 @@
 package com.timcritt.tfg.infrastructure.persistence.jpa;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
+@Getter
+@Setter
 public class UserJpaEntity {
 
     @Id
@@ -17,46 +20,18 @@ public class UserJpaEntity {
     private String username;
     private String name;
     private String surname;
+
+    @Column(nullable = false, unique = true)
     private String email;
 
-    public Long getId() {
-        return id;
+    @ManyToMany(mappedBy = "users")
+    private Set<RoleJpaEntity> roles = new HashSet<>();
+
+    public Set<RoleJpaEntity> getUserRoles() {
+        return roles;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getSurname() {
-        return surname;
-    }
-
-    public void setSurname(String surname) {
-        this.surname = surname;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
+    public void setUserRoles(Set<RoleJpaEntity> roles) {
+        this.roles = (roles == null) ? new HashSet<>() : new HashSet<>(roles);
     }
 }
-

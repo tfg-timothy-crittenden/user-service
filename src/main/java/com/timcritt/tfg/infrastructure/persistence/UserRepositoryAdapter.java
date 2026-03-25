@@ -4,6 +4,7 @@ import com.timcritt.tfg.application.port.outbound.UserRepositoryPort;
 import com.timcritt.tfg.domain.model.User;
 import com.timcritt.tfg.infrastructure.persistence.jpa.UserJpaEntity;
 import com.timcritt.tfg.infrastructure.persistence.spring.UserJpaRepository;
+import com.timcritt.tfg.infrastructure.persistence.mapper.UserEntityMapper;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -21,12 +22,12 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
 
     @Override
     public Optional<User> findById(Long id) {
-        return jpaRepository.findById(id).map(UserEntityMapper::toDomain);
+        return jpaRepository.findById(id).map(com.timcritt.tfg.infrastructure.persistence.mapper.UserEntityMapper::toDomain);
     }
 
     @Override
     public User save(User user) {
-        UserJpaEntity entity = UserEntityMapper.toEntity(user);
+        UserJpaEntity entity = com.timcritt.tfg.infrastructure.persistence.mapper.UserEntityMapper.toEntity(user);
         UserJpaEntity saved = jpaRepository.save(entity);
         return UserEntityMapper.toDomain(saved);
     }
