@@ -1,5 +1,6 @@
 package com.timcritt.tfg.infrastructure.security;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
@@ -11,6 +12,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 import org.springframework.web.accept.HeaderContentNegotiationStrategy;
 
@@ -20,7 +22,7 @@ import org.springframework.web.accept.HeaderContentNegotiationStrategy;
 public class SecurityConfig {
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
         var apiEntryPoint = new HttpStatusEntryPoint(org.springframework.http.HttpStatus.UNAUTHORIZED);
         var jsonMatcher = new MediaTypeRequestMatcher(new HeaderContentNegotiationStrategy(), MediaType.APPLICATION_JSON);
         jsonMatcher.setIgnoredMediaTypes(java.util.Set.of(MediaType.ALL));
@@ -41,12 +43,19 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex.defaultAuthenticationEntryPointFor(apiEntryPoint, jsonMatcher))
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .formLogin(form -> form.defaultSuccessUrl("/", true))
                 .logout(logout -> logout.logoutSuccessUrl("/login?logout"))
                 .build();
     }
 
-
+    @Bean
+    JwtAuthenticationFilter jwtAuthenticationFilter(
+            CustomUserDetailsService userDetailsService,
+            @Value("${app.jwt.secret:change-me-change-me-change-me-change-me}") String secret
+    ) {
+        return new JwtAuthenticationFilter(userDetailsService, secret);
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
