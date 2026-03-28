@@ -6,6 +6,7 @@ import com.timcritt.tfg.domain.model.User;
 public interface UserUseCase {
     User createUser(String username, String name, String surname, String email);
     User getUserById(Long id);
+    User getUserByUsername(String username);
     User updateUser(Long id, String username, String name, String surname, String email);
     Boolean deleteUser(Long id);
 }

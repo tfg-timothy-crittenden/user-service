@@ -4,7 +4,7 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-import com.timcritt.tfg.domain.model.Role;
+import org.jspecify.annotations.Nullable;
 
 public class User {
 
@@ -13,17 +13,19 @@ public class User {
     private String name;
     private String surname;
     private String email;
+    private String passwordHash;
     private Set<Role> roles = new HashSet<>();
 
     public User() {}
 
-    public User(Long id, String username, String name, String surname, String email, Set<Role> Roles) {
+    public User(Long id, String username, String name, String surname, String email, Set<Role> roles, String passwordHash) {
         this.id = id;
         this.username = username;
         this.name = name;
         this.surname = surname;
         this.email = email;
-        this.roles = (Roles == null) ? new HashSet<>() : new HashSet<>(Roles);
+        this.roles = (roles == null) ? new HashSet<>() : new HashSet<>(roles);
+        this.passwordHash = passwordHash;
     }
 
     public Long getId() {
@@ -94,5 +96,13 @@ public class User {
     @Override
     public int hashCode() {
         return Objects.hash(id, username, name, surname, email);
+    }
+
+    public @Nullable String getPasswordHash() {
+        return passwordHash;
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
     }
 }

@@ -28,6 +28,12 @@ public class UserServiceAdapter implements UserUseCase {
     }
 
     @Override
+    @Transactional
+    public User getUserByUsername(String username) {
+        return delegate.getUserByUsername(username);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public User getUserById(Long id) {
         return delegate.getUserById(id);

@@ -4,7 +4,7 @@ WORKDIR /app
 
 # Copy pom first to leverage Docker layer cache
 COPY pom.xml .
-COPY .mvn .mvn
+COPY .mvn .mvn/
 COPY mvnw .
 COPY mvnw.cmd .
 
@@ -12,7 +12,7 @@ COPY mvnw.cmd .
 RUN mvn -q -DskipTests dependency:go-offline
 
 # Copy source and build
-COPY src src
+COPY src src/
 RUN mvn -q -DskipTests clean package
 
 # ---- Run stage ----
@@ -27,7 +27,7 @@ EXPOSE 8082
 
 # Defaults for Docker network (override if needed)
 ENV SERVER_PORT=8082
-ENV SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/auth_db
+ENV SPRING_DATASOURCE_URL=jdbc:postgresql://user-db:5432/user_db
 ENV SPRING_DATASOURCE_USERNAME=myuser
 ENV SPRING_DATASOURCE_PASSWORD=secret
 

@@ -9,6 +9,8 @@ import com.timcritt.tfg.infrastructure.web.dto.RoleDto;
 import java.util.HashSet;
 import java.util.Set;
 
+//Keep passwords out of the DTOs!
+
 public final class UserDtoMapper {
     private UserDtoMapper() {}
 
@@ -28,14 +30,14 @@ public final class UserDtoMapper {
     public static User toDomain(UserDto dto) {
         if (dto == null) return null;
 
-        return new User(
-                dto.getId(),
-                dto.getUsername(),
-                dto.getName(),
-                dto.getSurname(),
-                dto.getEmail(),
-                toDomainRoles(dto.getRoles())
-        );
+        User user = new User();
+        user.setId(dto.getId());
+        user.setUsername(dto.getUsername());
+        user.setName(dto.getName());
+        user.setSurname(dto.getSurname());
+        user.setEmail(dto.getEmail());
+        user.setRoles(toDomainRoles(dto.getRoles()));
+       return user;
     }
 
     private static Set<RoleDto> toRoleDtos(Set<Role> roles) {

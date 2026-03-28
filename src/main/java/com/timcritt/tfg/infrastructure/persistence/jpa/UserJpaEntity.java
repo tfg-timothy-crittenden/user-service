@@ -21,6 +21,9 @@ public class UserJpaEntity {
     private String name;
     private String surname;
 
+    @Column(name = "password_hash")
+    private String passwordHash;
+
     @Column(nullable = false, unique = true)
     private String email;
 

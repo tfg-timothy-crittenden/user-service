@@ -20,6 +20,11 @@ public class UserUseCaseImpl implements UserUseCase {
     }
 
     @Override
+    public User getUserByUsername(String username) {
+        return repository.findByUsername(username).orElseThrow(()-> new UserNotFoundException(username));
+    }
+
+    @Override
     public User updateUser(Long id, String username, String name, String surname, String email) {
         User existing = repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         existing.setUsername(username);

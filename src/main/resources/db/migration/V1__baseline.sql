@@ -1,6 +1,7 @@
--- Initial schema for user-service
--- NOTE: This is a starter based on the current code + your ERD.
--- Adjust column names/types to exactly match your final design.
+-- Baseline schema for user-service.
+-- This file replaces the historical V1..V5 migration chain.
+-- New dev databases should be created by applying ONLY this baseline
+-- plus any repeatable migrations (R__*.sql).
 
 -- Users table
 CREATE TABLE IF NOT EXISTS users (
@@ -9,6 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
     name VARCHAR(255),
     surname VARCHAR(255),
     email VARCHAR(255) NOT NULL,
+    password_hash VARCHAR(255),
     CONSTRAINT uq_users_email UNIQUE (email)
 );
 
@@ -27,3 +29,8 @@ CREATE TABLE IF NOT EXISTS user_roles (
     CONSTRAINT fk_user_roles_role FOREIGN KEY (role_id) REFERENCES role(id) ON DELETE RESTRICT,
     CONSTRAINT fk_user_roles_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+-- Helpful indexes
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
+
