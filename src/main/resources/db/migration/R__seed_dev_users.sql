@@ -16,16 +16,17 @@ WHERE NOT EXISTS (SELECT 1 FROM role WHERE role_type = 'ADMIN');
 
 -- Users
 -- Canonical column is password_hash (see V5__standardize_users_password_hash.sql)
-INSERT INTO users (username, name, surname, email, password_hash)
-SELECT 'jsmith', 'John', 'Smith', 'john.smith@example.com', '$2a$12$FO7NUwkIDboYS53fl5yZzO8.3A6cHxdBmuqvlwJ56MdY97GI8IPhe'
+-- Include verified column explicitly to be safe if the column exists with NOT NULL constraint in some environments.
+INSERT INTO users (username, name, surname, email, password_hash, verified)
+SELECT 'jsmith', 'John', 'Smith', 'john.smith@example.com', '$2a$12$FO7NUwkIDboYS53fl5yZzO8.3A6cHxdBmuqvlwJ56MdY97GI8IPhe', TRUE
 WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'john.smith@example.com');
 
-INSERT INTO users (username, name, surname, email, password_hash)
-SELECT 'mdoe', 'Mary', 'Doe', 'mary.doe@example.com', '$2a$12$FO7NUwkIDboYS53fl5yZzO8.3A6cHxdBmuqvlwJ56MdY97GI8IPhe'
+INSERT INTO users (username, name, surname, email, password_hash, verified)
+SELECT 'mdoe', 'Mary', 'Doe', 'mary.doe@example.com', '$2a$12$FO7NUwkIDboYS53fl5yZzO8.3A6cHxdBmuqvlwJ56MdY97GI8IPhe', TRUE
 WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'mary.doe@example.com');
 
-INSERT INTO users (username, name, surname, email, password_hash)
-SELECT 'rjohnson', 'Robert', 'Johnson', 'robert.johnson@example.com', '$2a$12$FO7NUwkIDboYS53fl5yZzO8.3A6cHxdBmuqvlwJ56MdY97GI8IPhe'
+INSERT INTO users (username, name, surname, email, password_hash, verified)
+SELECT 'rjohnson', 'Robert', 'Johnson', 'robert.johnson@example.com', '$2a$12$FO7NUwkIDboYS53fl5yZzO8.3A6cHxdBmuqvlwJ56MdY97GI8IPhe', TRUE
 WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'robert.johnson@example.com');
 
 -- Ensure seeded users are marked verified for local dev convenience
