@@ -15,7 +15,7 @@ RUN mvn -q -DskipTests dependency:go-offline
 COPY src src/
 RUN mvn -q -DskipTests clean package
 
-# ---- Run stage ----
+# ---- Run stage ----git
 FROM eclipse-temurin:21-jre
 WORKDIR /app
 
@@ -25,14 +25,10 @@ COPY --from=build /app/target/*.jar app.jar
 # Service runs on 8082
 EXPOSE 8082
 
-# Defaults for Docker network
+# Defaults for Docker network (override if needed)
 ENV SERVER_PORT=8082
 ENV SPRING_DATASOURCE_URL=jdbc:postgresql://user-db:5432/user_db
 ENV SPRING_DATASOURCE_USERNAME=myuser
 ENV SPRING_DATASOURCE_PASSWORD=secret
-
-ENV SPRING_MAIL_HOST=mailpit
-ENV SPRING_MAIL_PORT=1025
-ENV APP_MAIL_FROM=no-reply@tfg.local
 
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
