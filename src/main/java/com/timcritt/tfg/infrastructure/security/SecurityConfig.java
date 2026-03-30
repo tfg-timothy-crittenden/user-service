@@ -22,16 +22,19 @@ import org.springframework.web.accept.HeaderContentNegotiationStrategy;
 public class SecurityConfig {
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
+    SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) {
         var apiEntryPoint = new HttpStatusEntryPoint(org.springframework.http.HttpStatus.UNAUTHORIZED);
         var jsonMatcher = new MediaTypeRequestMatcher(new HeaderContentNegotiationStrategy(), MediaType.APPLICATION_JSON);
         jsonMatcher.setIgnoredMediaTypes(java.util.Set.of(MediaType.ALL));
 
         return http
-                .csrf(csrf -> csrf.ignoringRequestMatchers(request -> "/api/auth/login".equals(request.getRequestURI())))
+                .csrf(csrf -> csrf.ignoringRequestMatchers(
+                        request -> "/api/auth/login".equals(request.getRequestURI())
+                                || "/api/auth/signup".equals(request.getRequestURI())
+                ))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/login", "/error").permitAll()
-                        .requestMatchers("/api/auth/login").permitAll()
+                        .requestMatchers("/api/auth/login", "/api/auth/signup", "/api/auth/confirm-email").permitAll()
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                         .requestMatchers(
                                 "/swagger-ui/**",
@@ -63,7 +66,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) {
         return configuration.getAuthenticationManager();
     }
 }

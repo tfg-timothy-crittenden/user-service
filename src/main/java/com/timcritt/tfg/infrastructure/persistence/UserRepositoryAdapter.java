@@ -1,23 +1,32 @@
 package com.timcritt.tfg.infrastructure.persistence;
 
 import com.timcritt.tfg.application.port.outbound.UserRepositoryPort;
+import com.timcritt.tfg.domain.model.Role;
+import com.timcritt.tfg.domain.model.RoleType;
 import com.timcritt.tfg.domain.model.User;
+import com.timcritt.tfg.infrastructure.persistence.jpa.RoleJpaEntity;
 import com.timcritt.tfg.infrastructure.persistence.jpa.UserJpaEntity;
+import com.timcritt.tfg.infrastructure.persistence.spring.RoleJpaRepository;
 import com.timcritt.tfg.infrastructure.persistence.spring.UserJpaRepository;
-import com.timcritt.tfg.infrastructure.persistence.UserEntityMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
+import java.util.HashSet;
 import java.util.Optional;
-
-// This class is the adapter that implements the UserRepositoryPort interface and uses Spring Data JPA to interact with the database.
+import java.util.Set;
 
 @Repository
 public class UserRepositoryAdapter implements UserRepositoryPort {
 
-    private final UserJpaRepository jpaRepository;
+    private static final Logger log = LoggerFactory.getLogger(UserRepositoryAdapter.class);
 
-    public UserRepositoryAdapter(UserJpaRepository jpaRepository) {
+    private final UserJpaRepository jpaRepository;
+    private final RoleJpaRepository roleJpaRepository;
+
+    public UserRepositoryAdapter(UserJpaRepository jpaRepository, RoleJpaRepository roleJpaRepository) {
         this.jpaRepository = jpaRepository;
+        this.roleJpaRepository = roleJpaRepository;
     }
 
     @Override
@@ -31,8 +40,50 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     }
 
     @Override
+    public Optional<User> findByEmail(String email) {
+        return jpaRepository.findByEmail(email).map(UserEntityMapper::toDomain);
+    }
+
+    @Override
     public User save(User user) {
+        // If this is an existing user, update the managed entity to avoid creating detached instances
+        if (user.getId() != null) {
+            Optional<UserJpaEntity> existing = jpaRepository.findById(user.getId());
+            if (existing.isPresent()) {
+                UserJpaEntity managed = existing.get();
+                // update simple fields
+                managed.setUsername(user.getUsername());
+                managed.setName(user.getName());
+                managed.setSurname(user.getSurname());
+                managed.setEmail(user.getEmail());
+                managed.setPasswordHash(user.getPasswordHash());
+                managed.setVerified(user.isVerified());
+
+                // resolve roles and set on managed entity
+                Set<RoleJpaEntity> resolvedRoles = resolveRoles(user.getRoles());
+                managed.setUserRoles(resolvedRoles);
+
+                // ensure owning side contains the managed user (compare by id to avoid duplicates)
+                for (RoleJpaEntity role : resolvedRoles) {
+                    if (!containsUserWithId(role.getUsers(), managed.getId())) {
+                        role.getUsers().add(managed);
+                    }
+                }
+
+                UserJpaEntity saved = jpaRepository.save(managed);
+                return UserEntityMapper.toDomain(saved);
+            }
+        }
+
+        // New user path (no existing id / not found): create new entity as before
         UserJpaEntity entity = UserEntityMapper.toEntity(user);
+        Set<RoleJpaEntity> resolvedRoles = resolveRoles(user.getRoles());
+        // attach new entity to roles (owning side)
+        for (RoleJpaEntity role : resolvedRoles) {
+            role.getUsers().add(entity);
+        }
+        entity.setUserRoles(resolvedRoles);
+        log.info("Saving user {} with resolved roles {}", user.getUsername(), resolvedRoles.stream().map(RoleJpaEntity::getRoleType).toList());
         UserJpaEntity saved = jpaRepository.save(entity);
         return UserEntityMapper.toDomain(saved);
     }
@@ -41,5 +92,33 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     public Boolean delete(Long id) {
         jpaRepository.deleteById(id);
         return true;
+    }
+
+    private boolean containsUserWithId(Set<UserJpaEntity> set, Long id) {
+        if (id == null) return false;
+        for (UserJpaEntity u : set) {
+            if (u != null && u.getId() != null && u.getId().equals(id)) return true;
+        }
+        return false;
+    }
+
+    private Set<RoleJpaEntity> resolveRoles(Set<Role> roles) {
+        Set<RoleJpaEntity> resolved = new HashSet<>();
+        if (roles == null || roles.isEmpty()) {
+            return resolved;
+        }
+
+        for (Role role : roles) {
+            if (role == null || role.getRoleType() == null) {
+                continue;
+            }
+
+            RoleType roleType = role.getRoleType();
+            RoleJpaEntity managed = roleJpaRepository.findByRoleType(roleType)
+                    .orElseThrow(() -> new IllegalStateException("Missing seeded role: " + roleType));
+            resolved.add(managed);
+        }
+
+        return resolved;
     }
 }

@@ -15,6 +15,7 @@ public class User {
     private String email;
     private String passwordHash;
     private Set<Role> roles = new HashSet<>();
+    private boolean verified = false;
 
     public User() {}
 
@@ -28,58 +29,28 @@ public class User {
         this.passwordHash = passwordHash;
     }
 
-    public Long getId() {
-        return id;
-    }
+    public Long getId() { return id; }
+    public User setId(Long id) { this.id = id; return this; }
+    public String getUsername() { return username; }
+    public User setUsername(String username) { this.username = username; return this; }
+    public String getName() { return name; }
+    public User setName(String name) { this.name = name; return this; }
+    public String getSurname() { return surname; }
+    public User setSurname(String surname) { this.surname = surname; return this; }
+    public String getEmail() { return email; }
+    public User setEmail(String email) { this.email = email; return this; }
+    public Set<Role> getRoles() { return roles; }
+    public void setRoles(Set<Role> roles) { this.roles = (roles == null) ? new HashSet<>() : new HashSet<>(roles); }
 
-    public User setId(Long id) {
-        this.id = id;
+    public User addRoleType(RoleType roleType) {
+        if (roleType != null) {
+            this.roles.add(new Role(null, roleType));
+        }
         return this;
     }
 
-    public String getUsername() {
-        return username;
-    }
-
-    public User setUsername(String username) {
-        this.username = username;
-        return this;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public User setName(String name) {
-        this.name = name;
-        return this;
-    }
-
-    public String getSurname() {
-        return surname;
-    }
-
-    public User setSurname(String surname) {
-        this.surname = surname;
-        return this;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public User setEmail(String email) {
-        this.email = email;
-        return this;
-    }
-
-    public Set<Role> getRoles() {
-        return roles;
-    }
-
-    public void setRoles(Set<Role> roles) {
-        this.roles = (roles == null) ? new HashSet<>() : new HashSet<>(roles);
-    }
+    public boolean isVerified() { return verified; }
+    public void setVerified(boolean verified) { this.verified = verified; }
 
     @Override
     public boolean equals(Object o) {
@@ -94,15 +65,8 @@ public class User {
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(id, username, name, surname, email);
-    }
+    public int hashCode() { return Objects.hash(id, username, name, surname, email); }
 
-    public @Nullable String getPasswordHash() {
-        return passwordHash;
-    }
-
-    public void setPasswordHash(String passwordHash) {
-        this.passwordHash = passwordHash;
-    }
+    public @Nullable String getPasswordHash() { return passwordHash; }
+    public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
 }

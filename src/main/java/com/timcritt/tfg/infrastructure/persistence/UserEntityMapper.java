@@ -2,7 +2,6 @@ package com.timcritt.tfg.infrastructure.persistence;
 
 import com.timcritt.tfg.domain.model.Role;
 import com.timcritt.tfg.domain.model.User;
-import com.timcritt.tfg.infrastructure.persistence.jpa.RoleJpaEntity;
 import com.timcritt.tfg.infrastructure.persistence.jpa.UserJpaEntity;
 
 import java.util.HashSet;
@@ -21,7 +20,7 @@ public class UserEntityMapper {
                 .map(RoleEntityMapper::toDomain)
                 .collect(Collectors.toSet());
 
-        return new User(
+        User user = new User(
                 entity.getId(),
                 entity.getUsername(),
                 entity.getName(),
@@ -30,6 +29,8 @@ public class UserEntityMapper {
                 roles,
                 entity.getPasswordHash()
         );
+        user.setVerified(entity.isVerified());
+        return user;
     }
 
     public static UserJpaEntity toEntity(User domain) {
@@ -42,15 +43,8 @@ public class UserEntityMapper {
         entity.setSurname(domain.getSurname());
         entity.setEmail(domain.getEmail());
         entity.setPasswordHash(domain.getPasswordHash());
-
-        Set<RoleJpaEntity> roleEntities = domain.getRoles() == null
-                ? new HashSet<>()
-                : domain.getRoles()
-                .stream()
-                .map(RoleEntityMapper::toEntity)
-                .collect(Collectors.toSet());
-
-        entity.setUserRoles(roleEntities);
+        entity.setVerified(domain.isVerified());
+        entity.setUserRoles(new HashSet<>());
 
         return entity;
     }

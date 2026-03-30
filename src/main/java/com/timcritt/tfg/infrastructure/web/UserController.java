@@ -19,14 +19,7 @@ public class UserController {
         this.useCase = useCase;
     }
 
-    @PostMapping
-    public ResponseEntity<UserDto> create(@RequestBody UserDto dto) {
-        return ResponseEntity.ok(
-                UserDtoMapper.toDto(
-                        useCase.createUser(dto.getUsername(), dto.getName(), dto.getSurname(), dto.getEmail())
-                )
-        );
-    }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<UserDto> getById(@PathVariable Long id) {

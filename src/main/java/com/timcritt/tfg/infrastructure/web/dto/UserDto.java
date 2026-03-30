@@ -8,7 +8,8 @@ public class UserDto {
     private String name;
     private String surname;
     private String email;
-    private Set<RoleDto> roles;
+    private Set<String> roles;
+    private Boolean verified;
 
     public Long getId() {
         return id;
@@ -50,11 +51,14 @@ public class UserDto {
         this.email = email;
     }
 
-    public Set<RoleDto> getRoles() {
+    public Set<String> getRoles() {
         return roles;
     }
 
-    public void setRoles(Set<RoleDto> roles) {
+    public void setRoles(Set<String> roles) {
         this.roles = roles;
     }
+
+    public Boolean isVerified() { return verified; }
+    public void setVerified(Boolean verified) { this.verified = verified; }
 }

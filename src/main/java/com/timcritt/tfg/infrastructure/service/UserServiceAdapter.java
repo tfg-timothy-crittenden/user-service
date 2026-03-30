@@ -2,10 +2,13 @@ package com.timcritt.tfg.infrastructure.service;
 
 import com.timcritt.tfg.application.port.inbound.UserUseCase;
 import com.timcritt.tfg.application.port.outbound.UserRepositoryPort;
+import com.timcritt.tfg.application.service.EmailVerificationService;
 import com.timcritt.tfg.application.service.UserUseCaseImpl;
 import com.timcritt.tfg.domain.model.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 // This class serves as an adapter that connects the application service implementation (UserUseCaseImpl)
 // to the Spring framework. It implements the UserUseCase interface and delegates the actual business logic
@@ -16,15 +19,20 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserServiceAdapter implements UserUseCase {
 
     private final UserUseCaseImpl delegate;
+    private final EmailVerificationService emailVerificationService;
 
-    public UserServiceAdapter(UserRepositoryPort repository) {
+    public UserServiceAdapter(UserRepositoryPort repository, EmailVerificationService emailVerificationService) {
         this.delegate = new UserUseCaseImpl(repository);
+        this.emailVerificationService = emailVerificationService;
     }
 
     @Override
     @Transactional
-    public User createUser(String username, String name, String surname, String email) {
-        return delegate.createUser(username, name, surname, email);
+    public User createUser(String username, String name, String surname, String email, String passwordHash) {
+        User saved = delegate.createUser(username, name, surname, email, passwordHash);
+        // generate verification token and send email
+        emailVerificationService.createAndSendToken(saved.getId(), saved.getEmail());
+        return saved;
     }
 
     @Override
@@ -37,6 +45,11 @@ public class UserServiceAdapter implements UserUseCase {
     @Transactional(readOnly = true)
     public User getUserById(Long id) {
         return delegate.getUserById(id);
+    }
+
+    @Override
+    public Optional<User> findByIdentifier(String usernameOrEmail) {
+        return delegate.findByIdentifier(usernameOrEmail);
     }
 
     @Override

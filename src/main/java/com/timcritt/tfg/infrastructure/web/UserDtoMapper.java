@@ -1,10 +1,9 @@
 package com.timcritt.tfg.infrastructure.web;
 
+import com.timcritt.tfg.domain.model.Role;
 import com.timcritt.tfg.domain.model.RoleType;
 import com.timcritt.tfg.domain.model.User;
-import com.timcritt.tfg.domain.model.Role;
 import com.timcritt.tfg.infrastructure.web.dto.UserDto;
-import com.timcritt.tfg.infrastructure.web.dto.RoleDto;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -23,7 +22,8 @@ public final class UserDtoMapper {
         dto.setName(d.getName());
         dto.setSurname(d.getSurname());
         dto.setEmail(d.getEmail());
-        dto.setRoles(toRoleDtos(d.getRoles()));
+        dto.setRoles(toRoleNames(d.getRoles()));
+        dto.setVerified(d.isVerified());
         return dto;
     }
 
@@ -37,32 +37,31 @@ public final class UserDtoMapper {
         user.setSurname(dto.getSurname());
         user.setEmail(dto.getEmail());
         user.setRoles(toDomainRoles(dto.getRoles()));
-       return user;
+        if (dto.isVerified() != null) {
+            user.setVerified(dto.isVerified());
+        }
+        return user;
     }
 
-    private static Set<RoleDto> toRoleDtos(Set<Role> roles) {
-        Set<RoleDto> out = new HashSet<>();
+    private static Set<String> toRoleNames(Set<Role> roles) {
+        Set<String> out = new HashSet<>();
         if (roles == null) return out;
 
         for (Role r : roles) {
-            if (r == null) continue;
-            RoleDto dto = new RoleDto();
-            dto.setId(r.getId());
-            dto.setRoleType(r.getRoleType().name());
-            out.add(dto);
+            if (r == null || r.getRoleType() == null) continue;
+            out.add(r.getRoleType().name());
         }
         return out;
     }
 
-    private static Set<Role> toDomainRoles(Set<RoleDto> roleDtos) {
+    private static Set<Role> toDomainRoles(Set<String> roleNames) {
         Set<Role> out = new HashSet<>();
-        if (roleDtos == null) return out;
+        if (roleNames == null) return out;
 
-        for (RoleDto dto : roleDtos) {
-            if (dto == null) continue;
+        for (String roleName : roleNames) {
+            if (roleName == null || roleName.isBlank()) continue;
             Role role = new Role();
-            role.setId(dto.getId());
-            role.setRoleType(RoleType.valueOf(dto.getRoleType()));
+            role.setRoleType(RoleType.valueOf(roleName));
             out.add(role);
         }
         return out;

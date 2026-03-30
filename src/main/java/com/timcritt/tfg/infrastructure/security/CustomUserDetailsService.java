@@ -33,6 +33,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .withUsername(user.getUsername())
                 .password(user.getPasswordHash())
                 .authorities(Collections.emptyList())
+                .disabled(!user.isVerified())
                 .build();
     }
 }

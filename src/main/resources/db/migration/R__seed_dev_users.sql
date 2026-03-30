@@ -28,6 +28,13 @@ INSERT INTO users (username, name, surname, email, password_hash)
 SELECT 'rjohnson', 'Robert', 'Johnson', 'robert.johnson@example.com', '$2a$12$FO7NUwkIDboYS53fl5yZzO8.3A6cHxdBmuqvlwJ56MdY97GI8IPhe'
 WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'robert.johnson@example.com');
 
+-- Ensure seeded users are marked verified for local dev convenience
+UPDATE users SET verified = TRUE WHERE email IN (
+  'john.smith@example.com',
+  'mary.doe@example.com',
+  'robert.johnson@example.com'
+);
+
 -- User roles (join table)
 -- jsmith -> STUDENT
 INSERT INTO user_roles (role_id, user_id)

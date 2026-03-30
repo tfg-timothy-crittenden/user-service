@@ -3,7 +3,11 @@ package com.timcritt.tfg.application.service;
 import com.timcritt.tfg.application.exception.UserNotFoundException;
 import com.timcritt.tfg.application.port.inbound.UserUseCase;
 import com.timcritt.tfg.application.port.outbound.UserRepositoryPort;
+import com.timcritt.tfg.domain.model.RoleType;
 import com.timcritt.tfg.domain.model.User;
+
+import java.util.Optional;
+import java.util.Set;
 
 // This class contains business logic for handling User operations.
 public class UserUseCaseImpl implements UserUseCase {
@@ -21,7 +25,16 @@ public class UserUseCaseImpl implements UserUseCase {
 
     @Override
     public User getUserByUsername(String username) {
-        return repository.findByUsername(username).orElseThrow(()-> new UserNotFoundException(username));
+        // Try username first, then fall back to email lookup for convenience
+        return repository.findByUsername(username)
+                .or(() -> repository.findByEmail(username))
+                .orElseThrow(() -> new UserNotFoundException(username));
+    }
+
+    @Override
+    public Optional<User> findByIdentifier(String usernameOrEmail) {
+        return repository.findByUsername(usernameOrEmail)
+                .or(() -> repository.findByEmail(usernameOrEmail));
     }
 
     @Override
@@ -35,12 +48,14 @@ public class UserUseCaseImpl implements UserUseCase {
     }
 
     @Override
-    public User createUser(String username, String name, String surname, String email) {
+    public User createUser(String username, String name, String surname, String email, String passwordHash) {
         User user = new User();
         user.setUsername(username);
         user.setName(name);
         user.setSurname(surname);
         user.setEmail(email);
+        user.setPasswordHash(passwordHash);
+        user.addRoleType(RoleType.STUDENT);
         return repository.save(user);
     }
 

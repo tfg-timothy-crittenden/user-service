@@ -27,6 +27,9 @@ public class UserJpaEntity {
     @Column(nullable = false, unique = true)
     private String email;
 
+    @Column(name = "verified", nullable = false)
+    private boolean verified = false;
+
     @ManyToMany(mappedBy = "users")
     private Set<RoleJpaEntity> roles = new HashSet<>();
 
