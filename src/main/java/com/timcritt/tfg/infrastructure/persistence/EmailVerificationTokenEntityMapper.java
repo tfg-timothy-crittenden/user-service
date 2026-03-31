@@ -1,12 +1,12 @@
 package com.timcritt.tfg.infrastructure.persistence;
 
 import com.timcritt.tfg.domain.model.EmailVerificationToken;
-import com.timcritt.tfg.infrastructure.persistence.jpa.EmailVerificationTokenJPAEntity;
+import com.timcritt.tfg.infrastructure.persistence.jpa.EmailVerificationTokenJpaEntity;
 import com.timcritt.tfg.infrastructure.persistence.jpa.UserJpaEntity;
 
 public class EmailVerificationTokenEntityMapper {
 
-    public static EmailVerificationToken toDomain(EmailVerificationTokenJPAEntity entity) {
+    public static EmailVerificationToken toDomain(EmailVerificationTokenJpaEntity entity) {
         if (entity == null) return null;
 
         return new EmailVerificationToken(
@@ -19,10 +19,10 @@ public class EmailVerificationTokenEntityMapper {
         );
     }
 
-    public static EmailVerificationTokenJPAEntity toEntity(EmailVerificationToken domain) {
+    public static EmailVerificationTokenJpaEntity toEntity(EmailVerificationToken domain) {
         if (domain == null) return null;
 
-        EmailVerificationTokenJPAEntity entity = new EmailVerificationTokenJPAEntity();
+        EmailVerificationTokenJpaEntity entity = new EmailVerificationTokenJpaEntity();
         entity.setId(domain.getId());
         if (domain.getUserId() != null) {
             UserJpaEntity user = new UserJpaEntity();

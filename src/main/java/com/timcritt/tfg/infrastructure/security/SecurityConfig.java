@@ -29,8 +29,8 @@ public class SecurityConfig {
 
         return http
                 .csrf(csrf -> csrf.ignoringRequestMatchers(
-                        request -> "/api/auth/login".equals(request.getRequestURI())
-                                || "/api/auth/signup".equals(request.getRequestURI())
+                        // ignore CSRF for all API endpoints (JWT clients)
+                        request -> request.getRequestURI().startsWith("/api/")
                 ))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/login", "/error").permitAll()

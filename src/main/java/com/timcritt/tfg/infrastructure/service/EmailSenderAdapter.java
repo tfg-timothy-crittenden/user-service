@@ -26,4 +26,14 @@ public class EmailSenderAdapter implements EmailSenderPort {
         message.setText("Click this to confirm your email: " + verificationLink);
         mailSender.send(message);
     }
+
+    @Override
+    public void sendInvitationEmail(String to, String invitationLink) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(from);
+        message.setTo(to);
+        message.setSubject("Invitation to join the platform");
+        message.setText("Click this to join the platform: " + invitationLink);
+        mailSender.send(message);
+    }
 }

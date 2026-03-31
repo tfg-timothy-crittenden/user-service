@@ -10,7 +10,7 @@ import java.time.Instant;
 @Table(name = "email_verification_token")
 @Getter
 @Setter
-public class EmailVerificationTokenJPAEntity {
+public class EmailVerificationTokenJpaEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -19,8 +19,9 @@ public class PlatformInvitation {
 
     }
 
-    public PlatformInvitation(Long id, String email, String inviteeEmail, String token, RoleType roleType, Instant createdAt, Instant expiresAt) {
+    public PlatformInvitation(Long id, Long createdByUserId, String email, String inviteeEmail, String token, RoleType roleType, Instant createdAt, Instant expiresAt) {
         this.id = id;
+        this.createdByUserId = createdByUserId;
         this.inviteeEmail = inviteeEmail;
         this.token = token;
         this.roleType = roleType;
@@ -37,6 +38,13 @@ public class PlatformInvitation {
         this.id = id;
     }
 
+    public Long getCreatedByUserId() {
+        return createdByUserId;
+    }
+    public void setCreatedByUserId(Long createdByUserId) {
+        this.createdByUserId = createdByUserId;
+    }
+
     public String getInviteeEmail() {
         return inviteeEmail;
     }
@@ -48,9 +56,15 @@ public class PlatformInvitation {
     public Instant getCreatedAt() {
         return createdAt;
     }
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
 
     public Instant getExpiresAt() {
         return expiresAt;
+    }
+    public void setexpiresAt(Instant expiresAt) {
+        this.expiresAt = expiresAt;
     }
 
     public Instant getConfirmedAt() {
@@ -61,11 +75,11 @@ public class PlatformInvitation {
         this.confirmedAt = confirmedAt;
     }
 
-    public PlatformInvitationStatus getInvitationStatus() {
+    public PlatformInvitationStatus getPlatformInvitationStatus() {
         return invitationStatus;
     }
 
-    public void setInvitationStatus(PlatformInvitationStatus invitationStatus) {
+    public void setPlatformInvitationStatus(PlatformInvitationStatus invitationStatus) {
         this.invitationStatus = invitationStatus;
     }
 
@@ -105,5 +119,9 @@ public class PlatformInvitation {
             throw new IllegalStateException("Only pending invitations can be cancelled");
         }
         this.invitationStatus = PlatformInvitationStatus.CANCELLED;
+    }
+
+    public void setExpiresAt(Instant expiresAt) {
+        this.expiresAt = expiresAt;
     }
 }

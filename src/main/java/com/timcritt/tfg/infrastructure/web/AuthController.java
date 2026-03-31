@@ -2,11 +2,15 @@ package com.timcritt.tfg.infrastructure.web;
 
 import com.timcritt.tfg.application.exception.UserNotFoundException;
 import com.timcritt.tfg.application.port.inbound.UserUseCase;
+import com.timcritt.tfg.domain.model.RoleType;
+import com.timcritt.tfg.infrastructure.security.CustomUserPrincipal;
 import com.timcritt.tfg.infrastructure.security.JwtTokenService;
+import com.timcritt.tfg.infrastructure.service.PlatformInvitationAdapter;
 import com.timcritt.tfg.infrastructure.web.dto.UserDto;
 import com.timcritt.tfg.infrastructure.service.EmailVerificationAdapter;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -15,6 +19,7 @@ import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,18 +40,20 @@ public class AuthController {
     private final UserUseCase userUseCase;
     private final PasswordEncoder passwordEncoder;
     private final EmailVerificationAdapter emailVerificationFacade;
+    private final PlatformInvitationAdapter platformInvitationAdapter;
 
     public AuthController(
             org.springframework.security.authentication.AuthenticationManager authenticationManager,
             JwtTokenService jwtTokenService,
             UserUseCase userUseCase,
             PasswordEncoder passwordEncoder,
-            EmailVerificationAdapter emailVerificationFacade) {
+            EmailVerificationAdapter emailVerificationFacade, PlatformInvitationAdapter platformInvitationAdapter) {
         this.authenticationManager = authenticationManager;
         this.jwtTokenService = jwtTokenService;
         this.userUseCase = userUseCase;
         this.passwordEncoder = passwordEncoder;
         this.emailVerificationFacade = emailVerificationFacade;
+        this.platformInvitationAdapter = platformInvitationAdapter;
     }
 
     @PostMapping("/login")
@@ -117,8 +124,29 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/send-platform-invitation")
+    public ResponseEntity<?> sendPlatformInvitation(@Valid @RequestBody SendInvitationRequest invitationBody, @AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
+        log.info("POST /api/auth/send-platform-invitation");
+
+        platformInvitationAdapter.createAndSendPlatformInvitation(userPrincipal.getId(), invitationBody.email(), invitationBody.roleType());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/signup-with-invitation")
+    public ResponseEntity<?> signupWithInvitation(@Valid @RequestBody SignupWithInvitationRequest request) {
+        log.info("POST /api/auth/signup-with-invitation");
+        platformInvitationAdapter.signupWithInvitationToken(request.invitationToken(), request.username(), request.name(), request.surname(), request.password());
+        return ResponseEntity.ok().build();
+    }
+
+
     public record LoginRequest(@NotBlank String username, @NotBlank String password) { }
     public record LoginResponse(@NotBlank String username, @NotBlank String token, String message) { }
     public record SignupRequest(@NotBlank String username, @NotBlank String name, @NotBlank String surname, @NotBlank String email, @NotBlank String password) { }
     public record SignupResponse(@NotBlank String username, String message) { }
+
+    public record SendInvitationRequest(@NotBlank String email, @NotNull RoleType roleType) { }
+
+    public record SignupWithInvitationRequest(@NotBlank String username, @NotBlank String name, @NotBlank String surname, @NotBlank String invitationToken, @NotBlank String password) { }
+
 }
