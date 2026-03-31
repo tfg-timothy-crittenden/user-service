@@ -1,10 +1,10 @@
 package com.timcritt.tfg.infrastructure.web;
 
 import com.timcritt.tfg.application.exception.UserNotFoundException;
-import com.timcritt.tfg.application.service.EmailVerificationService;
 import com.timcritt.tfg.application.port.inbound.UserUseCase;
 import com.timcritt.tfg.infrastructure.security.JwtTokenService;
 import com.timcritt.tfg.infrastructure.web.dto.UserDto;
+import com.timcritt.tfg.infrastructure.service.EmailVerificationAdapter;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import org.slf4j.Logger;
@@ -24,8 +24,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.util.Set;
-
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -36,19 +34,19 @@ public class AuthController {
     private final JwtTokenService jwtTokenService;
     private final UserUseCase userUseCase;
     private final PasswordEncoder passwordEncoder;
-    private final EmailVerificationService emailVerificationService;
+    private final EmailVerificationAdapter emailVerificationFacade;
 
     public AuthController(
             org.springframework.security.authentication.AuthenticationManager authenticationManager,
             JwtTokenService jwtTokenService,
             UserUseCase userUseCase,
             PasswordEncoder passwordEncoder,
-            EmailVerificationService emailVerificationService) {
+            EmailVerificationAdapter emailVerificationFacade) {
         this.authenticationManager = authenticationManager;
         this.jwtTokenService = jwtTokenService;
         this.userUseCase = userUseCase;
         this.passwordEncoder = passwordEncoder;
-        this.emailVerificationService = emailVerificationService;
+        this.emailVerificationFacade = emailVerificationFacade;
     }
 
     @PostMapping("/login")
@@ -110,7 +108,7 @@ public class AuthController {
         log.info("GET /api/auth/confirm-email token={}", token);
 
         try {
-            emailVerificationService.confirmToken(token);
+            emailVerificationFacade.confirmToken(token);
             return ResponseEntity.ok(java.util.Map.of("message", "Email confirmed"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(java.util.Map.of("error", e.getMessage()));

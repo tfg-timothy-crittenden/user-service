@@ -2,8 +2,7 @@ package com.timcritt.tfg.infrastructure.service;
 
 import com.timcritt.tfg.application.port.inbound.UserUseCase;
 import com.timcritt.tfg.application.port.outbound.UserRepositoryPort;
-import com.timcritt.tfg.application.service.EmailVerificationService;
-import com.timcritt.tfg.application.service.UserUseCaseImpl;
+import com.timcritt.tfg.application.service.UserUseCaseService;
 import com.timcritt.tfg.domain.model.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,12 +17,12 @@ import java.util.Optional;
 @Service
 public class UserServiceAdapter implements UserUseCase {
 
-    private final UserUseCaseImpl delegate;
-    private final EmailVerificationService emailVerificationService;
+    private final UserUseCaseService delegate;
+    private final EmailVerificationAdapter emailVerificationFacade;
 
-    public UserServiceAdapter(UserRepositoryPort repository, EmailVerificationService emailVerificationService) {
-        this.delegate = new UserUseCaseImpl(repository);
-        this.emailVerificationService = emailVerificationService;
+    public UserServiceAdapter(UserRepositoryPort repository, EmailVerificationAdapter emailVerificationFacade) {
+        this.delegate = new UserUseCaseService(repository);
+        this.emailVerificationFacade = emailVerificationFacade;
     }
 
     @Override
@@ -31,7 +30,7 @@ public class UserServiceAdapter implements UserUseCase {
     public User createUser(String username, String name, String surname, String email, String passwordHash) {
         User saved = delegate.createUser(username, name, surname, email, passwordHash);
         // generate verification token and send email
-        emailVerificationService.createAndSendToken(saved.getId(), saved.getEmail());
+        emailVerificationFacade.createAndSendToken(saved.getId(), saved.getEmail());
         return saved;
     }
 

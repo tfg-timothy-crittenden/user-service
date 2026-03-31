@@ -7,14 +7,13 @@ import com.timcritt.tfg.domain.model.RoleType;
 import com.timcritt.tfg.domain.model.User;
 
 import java.util.Optional;
-import java.util.Set;
 
 // This class contains business logic for handling User operations.
-public class UserUseCaseImpl implements UserUseCase {
+public class UserUseCaseService implements UserUseCase {
 
     private final UserRepositoryPort repository;
 
-    public UserUseCaseImpl(UserRepositoryPort repository) {
+    public UserUseCaseService(UserRepositoryPort repository) {
         this.repository = repository;
     }
 

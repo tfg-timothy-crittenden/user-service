@@ -1,26 +1,23 @@
 package com.timcritt.tfg.application.service;
 
+import com.timcritt.tfg.application.port.outbound.EmailSenderPort;
 import com.timcritt.tfg.application.port.outbound.EmailVerificationTokenRepositoryPort;
 import com.timcritt.tfg.application.port.outbound.UserRepositoryPort;
-import com.timcritt.tfg.infrastructure.service.EmailSenderService;
 import com.timcritt.tfg.domain.model.EmailVerificationToken;
 import com.timcritt.tfg.domain.model.User;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.UUID;
 
-@Service
 public class EmailVerificationService {
 
     private final EmailVerificationTokenRepositoryPort tokenRepository;
-    private final EmailSenderService emailSenderService;
+    private final EmailSenderPort emailSender;
     private final UserRepositoryPort userRepository;
 
-    public EmailVerificationService(EmailVerificationTokenRepositoryPort tokenRepository, EmailSenderService emailSenderService, UserRepositoryPort userRepository) {
+    public EmailVerificationService(EmailVerificationTokenRepositoryPort tokenRepository, EmailSenderPort emailSender, UserRepositoryPort userRepository) {
         this.tokenRepository = tokenRepository;
-        this.emailSenderService = emailSenderService;
+        this.emailSender = emailSender;
         this.userRepository = userRepository;
     }
 
@@ -34,10 +31,9 @@ public class EmailVerificationService {
 
         // build link
         String link = "http://localhost:8082/api/auth/confirm-email?token=" + token;
-        emailSenderService.sendVerificationEmail(userEmail, link);
+        emailSender.sendVerificationEmail(userEmail, link);
     }
 
-    @Transactional
     public void confirmToken(String token) {
         EmailVerificationToken ev = tokenRepository.findByToken(token).orElseThrow(() -> new IllegalArgumentException("Invalid token"));
 
