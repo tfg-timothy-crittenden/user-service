@@ -33,6 +33,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequestMapping("/api/auth")
 public class AuthController {
 
+    //TODO Move the business logic out of the infrastructure layer and into the application layer
+
     private static final Logger log = LoggerFactory.getLogger(AuthController.class);
 
     private final org.springframework.security.authentication.AuthenticationManager authenticationManager;

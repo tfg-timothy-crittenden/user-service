@@ -6,7 +6,9 @@ import com.timcritt.tfg.application.port.outbound.PasswordEncoderPort;
 import com.timcritt.tfg.application.port.outbound.PlatformInvitationRepositoryPort;
 import com.timcritt.tfg.application.port.outbound.UserRepositoryPort;
 import com.timcritt.tfg.domain.model.*;
-
+import com.timcritt.tfg.application.exception.AlreadyHasRoleException;
+import com.timcritt.tfg.application.exception.ActiveInvitationExistsException;
+import com.timcritt.tfg.application.exception.InvitationNotFoundException;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -30,45 +32,113 @@ public class PlatformInvitationService {
     }
 
     public void createAndSendPlatformInvitation(Long createdByUserId, String inviteeEmail, RoleType roleType) {
+        if (inviteeEmail == null) throw new IllegalArgumentException("inviteeEmail must not be null");
 
-        // Create the new invitation
-        PlatformInvitation platformInvitation = new PlatformInvitation();
+        String normalizedEmail = inviteeEmail.trim().toLowerCase();
 
+        // 1) If user exists: if they already have the role -> exit. Otherwise assign and exit.
+        Optional<User> userOpt = userRepository.findByEmail(normalizedEmail);
+        if (userOpt.isPresent()) {
+            User existingUser = userOpt.get();
+            boolean hasRole = existingUser.getRoles().stream()
+                    .anyMatch(r -> r.getRoleType() == roleType);
+            if (hasRole) {
+                throw new AlreadyHasRoleException(normalizedEmail, roleType.name());
+
+            }
+
+            Role newRole = new Role();
+            newRole.setRoleType(roleType);
+            var roles = existingUser.getRoles();
+            roles.add(newRole);
+            existingUser.setRoles(roles);
+            userRepository.save(existingUser);
+            return; // role assigned, do not create invitation
+        }
+
+        // 2) No user found -> handle invitation
         Instant now = Instant.now();
-        Instant expiresAt = now.plusSeconds(60 * 60 * 24);
+        Instant expiresAt = now.plusSeconds(60 * 60 * 24); // 24h
         String token = UUID.randomUUID().toString();
 
+        Optional<PlatformInvitation> existingInvOpt = platformInvitationRepository.findByInviteeEmail(normalizedEmail);
+        if (existingInvOpt.isPresent()) {
+            PlatformInvitation existing = existingInvOpt.get();
+
+            // If pending and still active: resend (update token/expiry) and return
+            if (existing.getPlatformInvitationStatus() == PlatformInvitationStatus.PENDING
+                    && now.isBefore(existing.getExpiresAt())) {
+
+                String newToken = UUID.randomUUID().toString();
+                existing.setToken(newToken);
+                existing.setCreatedAt(now);
+                existing.setExpiresAt(expiresAt);
+
+                try {
+                    platformInvitationRepository.save(existing);
+                } catch (org.springframework.dao.DataIntegrityViolationException ex) {
+                    throw new ActiveInvitationExistsException(normalizedEmail);
+                }
+
+                String link = "http://localhost:8082/api/auth/confirm-email?token=" + newToken;
+                CompletableFuture.runAsync(() -> {
+                    try { emailSender.sendInvitationEmail(normalizedEmail, link); }
+                    catch (Exception e) { throw new RuntimeException(e); }
+                });
+                return;
+            }
+
+            // Otherwise reuse/update the existing row (make it pending with new token)
+            existing.setCreatedByUserId(createdByUserId);
+            existing.setCreatedAt(now);
+            existing.setExpiresAt(expiresAt);
+            existing.setPlatformInvitationStatus(PlatformInvitationStatus.PENDING);
+            existing.setToken(token);
+            existing.setRoleType(roleType);
+            existing.setConfirmedAt(null);
+
+            try {
+                platformInvitationRepository.save(existing);
+            } catch (org.springframework.dao.DataIntegrityViolationException ex) {
+                throw new ActiveInvitationExistsException(normalizedEmail);
+            }
+
+            String link = "http://localhost:8082/api/auth/confirm-email?token=" + token;
+            CompletableFuture.runAsync(() -> {
+                try { emailSender.sendInvitationEmail(normalizedEmail, link); }
+                catch (Exception e) { throw new RuntimeException(e); }
+            });
+            return;
+        }
+
+        // 3) No existing invitation -> create new and send
+        PlatformInvitation platformInvitation = new PlatformInvitation();
         platformInvitation.setCreatedByUserId(createdByUserId);
-        platformInvitation.setEmailInvitee(inviteeEmail);
+        platformInvitation.setEmailInvitee(normalizedEmail);
         platformInvitation.setCreatedAt(now);
         platformInvitation.setExpiresAt(expiresAt);
         platformInvitation.setPlatformInvitationStatus(PlatformInvitationStatus.PENDING);
         platformInvitation.setToken(token);
         platformInvitation.setRoleType(roleType);
 
-        // Persist the new invitation
-        platformInvitationRepository.save(platformInvitation);
+        try {
+            platformInvitationRepository.save(platformInvitation);
+        } catch (org.springframework.dao.DataIntegrityViolationException ex) {
+            // concurrent insert created the row between check and insert
+            throw new ActiveInvitationExistsException(normalizedEmail);
+        }
 
         String link = "http://localhost:8082/api/auth/confirm-email?token=" + token;
-
-        // Send email asynchronously so the HTTP request doesn't block on SMTP delays
         CompletableFuture.runAsync(() -> {
-
-            try {
-                emailSender.sendInvitationEmail(inviteeEmail, link);
-
-            } catch (Exception ex) {
-                throw new RuntimeException(ex);
-            }
+            try { emailSender.sendInvitationEmail(normalizedEmail, link); }
+            catch (Exception e) { throw new RuntimeException(e); }
         });
-
-
     }
     public void signUpWIthInvitationToken(String token, String username, String name, String surname, String password) {
         // Check that the invitation with that token exists
         Optional<PlatformInvitation> invitationOpt = platformInvitationRepository.findByToken(token);
         if (invitationOpt.isEmpty()) {
-            throw new IllegalStateException("No platformInvitation found with token " + token);
+            throw new InvitationNotFoundException(token);
         }
 
         PlatformInvitation invitation = invitationOpt.get();
@@ -90,7 +160,6 @@ public class PlatformInvitationService {
         String inviteeEmail = invitation.getInviteeEmail();
 
         // Check for existing username/email to avoid DB constraint violations
-        // (assumes userRepository has these lookup methods)
         if (userRepository.findByUsername(username).isPresent()) {
             throw new IllegalStateException("Username already exists: " + username);
         }
@@ -126,3 +195,4 @@ public class PlatformInvitationService {
         platformInvitationRepository.save(invitation);
     }
 }
+
