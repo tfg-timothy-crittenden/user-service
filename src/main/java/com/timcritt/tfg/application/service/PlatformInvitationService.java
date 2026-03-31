@@ -120,6 +120,8 @@ public class PlatformInvitationService {
         userRepository.save(user);
 
         // Mark invitation as accepted and persist to prevent reuse
+        Instant confirmedAt = Instant.now();
+        invitation.setConfirmedAt(confirmedAt);
         invitation.setPlatformInvitationStatus(PlatformInvitationStatus.ACCEPTED);
         platformInvitationRepository.save(invitation);
     }

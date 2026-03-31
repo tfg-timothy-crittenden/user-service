@@ -69,3 +69,22 @@ WHERE r.role_type = 'ADMIN'
     SELECT 1 FROM user_roles ur
     WHERE ur.role_id = r.id AND ur.user_id = u.id
   );
+
+-- Add dev admin user
+INSERT INTO users (username, name, surname, email, password_hash, verified)
+SELECT 'admin', 'admin', 'admin', 'admin@example.com', '$2a$12$FO7NUwkIDboYS53fl5yZzO8.3A6cHxdBmuqvlwJ56MdY97GI8IPhe', TRUE
+    WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'admin@example.com');
+
+-- Ensure verified
+UPDATE users SET verified = TRUE WHERE email = 'admin@example.com';
+
+-- Assign ADMIN role to admin user
+INSERT INTO user_roles (role_id, user_id)
+SELECT r.id, u.id
+FROM role r
+         JOIN users u ON u.email = 'admin@example.com'
+WHERE r.role_type = 'ADMIN'
+  AND NOT EXISTS (
+    SELECT 1 FROM user_roles ur
+    WHERE ur.role_id = r.id AND ur.user_id = u.id
+);

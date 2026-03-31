@@ -8,8 +8,10 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import com.timcritt.tfg.application.port.outbound.PasswordEncoderPort;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -33,6 +35,7 @@ public class SecurityConfig {
                         request -> request.getRequestURI().startsWith("/api/")
                 ))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/auth/send-platform-invitation").hasRole("ADMIN")
                         .requestMatchers("/login", "/error").permitAll()
                         .requestMatchers("/api/auth/login", "/api/auth/signup", "/api/auth/confirm-email").permitAll()
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
@@ -41,7 +44,6 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**"
                         ).permitAll()
-                        .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().authenticated()
                 )
