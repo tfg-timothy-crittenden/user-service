@@ -37,7 +37,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/send-platform-invitation").hasRole("ADMIN")
                         .requestMatchers("/login", "/error").permitAll()
-                        .requestMatchers("/api/auth/login", "/api/auth/signup", "/api/auth/confirm-email", "/api/auth/signup-with-invitation", "/api/auth/request-password-reset").permitAll()
+                        .requestMatchers("/api/auth/login", "/api/auth/signup", "/api/auth/confirm-email", "/api/auth/signup-with-invitation", "/api/auth/request-password-reset", "/api/auth/change-password").permitAll()
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                         .requestMatchers(
                                 "/swagger-ui/**",

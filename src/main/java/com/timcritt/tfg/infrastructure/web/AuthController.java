@@ -29,7 +29,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -155,6 +154,13 @@ public class AuthController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("change-password")
+    public ResponseEntity<?> changePassword(@RequestParam("token") String token, @Valid @RequestBody SetNewPasswordRequest body) {
+        log.info("POST /api/auth/change-password");
+        passwordResetAdapter.setNewPassword(token, body.newPassword());
+        return ResponseEntity.ok().build();
+    }
+
 
     public record LoginRequest(@NotBlank String username, @NotBlank String password) { }
     public record LoginResponse(@NotBlank String username, @NotBlank String token, String message) { }
@@ -167,5 +173,6 @@ public class AuthController {
 
 
     public record RequestPasswordResetRequest(@NotBlank String email) { }
+    public record SetNewPasswordRequest(@NotBlank String newPassword) { }
 
 }

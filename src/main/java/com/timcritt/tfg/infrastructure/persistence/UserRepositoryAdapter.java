@@ -11,6 +11,7 @@ import com.timcritt.tfg.infrastructure.persistence.spring.UserJpaRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.Optional;
@@ -30,21 +31,25 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<User> findById(Long id) {
         return jpaRepository.findById(id).map(UserEntityMapper::toDomain);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<User> findByUsername(String username) {
         return jpaRepository.findByUsername(username).map(UserEntityMapper::toDomain);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<User> findByEmail(String email) {
         return jpaRepository.findByEmail(email).map(UserEntityMapper::toDomain);
     }
 
     @Override
+    @Transactional
     public User save(User user) {
         // If this is an existing user, update the managed entity to avoid creating detached instances
         if (user.getId() != null) {
@@ -83,7 +88,7 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
             role.getUsers().add(entity);
         }
         entity.setUserRoles(resolvedRoles);
-        log.info("Saving user {} with resolved roles {}", user.getUsername(), resolvedRoles.stream().map(RoleJpaEntity::getRoleType).toList());
+
         UserJpaEntity saved = jpaRepository.save(entity);
         return UserEntityMapper.toDomain(saved);
     }
