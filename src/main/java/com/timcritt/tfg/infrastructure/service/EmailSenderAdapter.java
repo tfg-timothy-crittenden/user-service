@@ -36,4 +36,14 @@ public class EmailSenderAdapter implements EmailSenderPort {
         message.setText("Click this to join the platform: " + invitationLink);
         mailSender.send(message);
     }
+
+    @Override
+    public void sendPasswordResetEmail(String to, String passwordResetLink) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(from);
+        message.setTo(to);
+        message.setSubject("Password reset");
+        message.setText("Click this to reset your password: " + passwordResetLink);
+        mailSender.send(message);
+    }
 }

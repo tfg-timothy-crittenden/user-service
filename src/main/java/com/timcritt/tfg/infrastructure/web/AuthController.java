@@ -5,6 +5,7 @@ import com.timcritt.tfg.application.port.inbound.UserUseCase;
 import com.timcritt.tfg.domain.model.RoleType;
 import com.timcritt.tfg.infrastructure.security.CustomUserPrincipal;
 import com.timcritt.tfg.infrastructure.security.JwtTokenService;
+import com.timcritt.tfg.infrastructure.service.PasswordResetAdapter;
 import com.timcritt.tfg.infrastructure.service.PlatformInvitationAdapter;
 import com.timcritt.tfg.infrastructure.web.dto.UserDto;
 import com.timcritt.tfg.infrastructure.service.EmailVerificationAdapter;
@@ -28,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -43,19 +45,21 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final EmailVerificationAdapter emailVerificationFacade;
     private final PlatformInvitationAdapter platformInvitationAdapter;
+    private final PasswordResetAdapter passwordResetAdapter;
 
     public AuthController(
             org.springframework.security.authentication.AuthenticationManager authenticationManager,
             JwtTokenService jwtTokenService,
             UserUseCase userUseCase,
             PasswordEncoder passwordEncoder,
-            EmailVerificationAdapter emailVerificationFacade, PlatformInvitationAdapter platformInvitationAdapter) {
+            EmailVerificationAdapter emailVerificationFacade, PlatformInvitationAdapter platformInvitationAdapter, PasswordResetAdapter passwordResetAdapter) {
         this.authenticationManager = authenticationManager;
         this.jwtTokenService = jwtTokenService;
         this.userUseCase = userUseCase;
         this.passwordEncoder = passwordEncoder;
         this.emailVerificationFacade = emailVerificationFacade;
         this.platformInvitationAdapter = platformInvitationAdapter;
+        this.passwordResetAdapter = passwordResetAdapter;
     }
 
     @PostMapping("/login")
@@ -141,14 +145,27 @@ public class AuthController {
         return ResponseEntity.ok().build();
     }
 
+    // Only for unauthenticated users: require an email in the request body
+    @PostMapping("/request-password-reset")
+    public ResponseEntity<?> requestPasswordReset(@Valid @RequestBody RequestPasswordResetRequest body) {
+        log.info("POST /api/auth/request-password-reset");
+        String email = body.email();
+
+        passwordResetAdapter.requestPasswordReset(email);
+        return ResponseEntity.ok().build();
+    }
+
 
     public record LoginRequest(@NotBlank String username, @NotBlank String password) { }
     public record LoginResponse(@NotBlank String username, @NotBlank String token, String message) { }
+
     public record SignupRequest(@NotBlank String username, @NotBlank String name, @NotBlank String surname, @NotBlank String email, @NotBlank String password) { }
     public record SignupResponse(@NotBlank String username, String message) { }
 
     public record SendInvitationRequest(@NotBlank String email, @NotNull RoleType roleType) { }
-
     public record SignupWithInvitationRequest(@NotBlank String username, @NotBlank String name, @NotBlank String surname, @NotBlank String invitationToken, @NotBlank String password) { }
+
+
+    public record RequestPasswordResetRequest(@NotBlank String email) { }
 
 }

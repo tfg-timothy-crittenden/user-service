@@ -19,7 +19,7 @@ public class UserUseCaseService implements UserUseCase {
 
     @Override
     public User getUserById(Long id) {
-        return repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+        return repository.findById(id).orElseThrow(() -> new UserNotFoundException(id, ""));
     }
 
     @Override
@@ -27,7 +27,7 @@ public class UserUseCaseService implements UserUseCase {
         // Try username first, then fall back to email lookup for convenience
         return repository.findByUsername(username)
                 .or(() -> repository.findByEmail(username))
-                .orElseThrow(() -> new UserNotFoundException(username));
+                .orElseThrow(() -> new UserNotFoundException(username, null));
     }
 
     @Override
@@ -38,7 +38,7 @@ public class UserUseCaseService implements UserUseCase {
 
     @Override
     public User updateUser(Long id, String username, String name, String surname, String email) {
-        User existing = repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+        User existing = repository.findById(id).orElseThrow(() -> new UserNotFoundException(id, ""));
         existing.setUsername(username);
         existing.setName(name);
         existing.setSurname(surname);
@@ -60,7 +60,7 @@ public class UserUseCaseService implements UserUseCase {
 
     @Override
     public Boolean deleteUser(Long id) {
-        User existing = repository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+        User existing = repository.findById(id).orElseThrow(() -> new UserNotFoundException(id, ""));
         return repository.delete(existing.getId());
     }
 }

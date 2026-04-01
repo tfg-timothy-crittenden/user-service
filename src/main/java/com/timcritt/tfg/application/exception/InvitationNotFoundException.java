@@ -1,4 +1,3 @@
-// java
 package com.timcritt.tfg.application.exception;
 
 public class InvitationNotFoundException extends RuntimeException {
