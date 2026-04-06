@@ -83,9 +83,12 @@ public class AuthController {
                     : request.username();
             String token = jwtTokenService.generateToken(username);
 
+            // Build the same user payload as /me
+            UserDto userDto = UserDtoMapper.toDto(userUseCase.getUserByUsername(username));
+
             return ResponseEntity.ok()
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                    .body(new LoginResponse(username, token, "Authenticated"));
+                    .body(java.util.Map.of("user", userDto, "token", token));
 
         } catch (DisabledException e) {
             return ResponseEntity.status(403).body(java.util.Map.of("error", "Please confirm your email"));
@@ -95,14 +98,16 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<UserDto> me(Authentication authentication) {
+    public ResponseEntity<?> me(Authentication authentication) {
         log.info("GET /api/auth/me");
 
         String username = authentication.getPrincipal() instanceof UserDetails userDetails
                 ? userDetails.getUsername()
                 : authentication.getName();
 
-        return ResponseEntity.ok(UserDtoMapper.toDto(userUseCase.getUserByUsername(username)));
+        // Return the user wrapped under a top-level 'user' property to match the login response shape
+        UserDto userDto = UserDtoMapper.toDto(userUseCase.getUserByUsername(username));
+        return ResponseEntity.ok(java.util.Map.of("user", userDto));
     }
 
     @PostMapping("/signup")
