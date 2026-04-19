@@ -14,8 +14,10 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Repository
 public class UserRepositoryAdapter implements UserRepositoryPort {
@@ -97,6 +99,13 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     public Boolean delete(Long id) {
         jpaRepository.deleteById(id);
         return true;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<User>  findAllUsersByRoleType(RoleType roleType) {
+        List<UserJpaEntity> entities = jpaRepository.findUsersByRoleType(roleType);
+        return entities.stream().map(UserEntityMapper::toDomain).collect(Collectors.toList());
     }
 
     private boolean containsUserWithId(Set<UserJpaEntity> set, Long id) {

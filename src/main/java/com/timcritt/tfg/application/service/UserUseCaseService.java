@@ -6,6 +6,7 @@ import com.timcritt.tfg.application.port.outbound.UserRepositoryPort;
 import com.timcritt.tfg.domain.model.RoleType;
 import com.timcritt.tfg.domain.model.User;
 
+import java.util.List;
 import java.util.Optional;
 
 // This class contains business logic for handling User operations.
@@ -62,5 +63,10 @@ public class UserUseCaseService implements UserUseCase {
     public Boolean deleteUser(Long id) {
         User existing = repository.findById(id).orElseThrow(() -> new UserNotFoundException(id, ""));
         return repository.delete(existing.getId());
+    }
+
+    @Override
+    public List<User> getAllUsersByRoleType(RoleType roleType) {
+        return repository.findAllUsersByRoleType(roleType);
     }
 }

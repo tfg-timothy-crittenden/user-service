@@ -1,11 +1,16 @@
 package com.timcritt.tfg.infrastructure.web;
 
 import com.timcritt.tfg.application.port.inbound.UserUseCase;
+import com.timcritt.tfg.domain.model.RoleType;
+import com.timcritt.tfg.domain.model.User;
 import com.timcritt.tfg.infrastructure.web.dto.UserDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/users")
@@ -29,6 +34,15 @@ public class UserController {
         log.debug("Found user id={} username={} email={}", user.getId(), user.getUsername(), user.getEmail());
 
         return ResponseEntity.ok(UserDtoMapper.toDto(user));
+    }
+
+    @GetMapping("/teachers")
+    public List<UserDto> getAllTeachers() {
+        log.info("GET /api/users");
+
+        List<User> users = useCase.getAllUsersByRoleType(RoleType.TEACHER);
+        return users.stream().map(UserDtoMapper::toDto).collect(Collectors.toList());
+
     }
 
     @PatchMapping("/{id}")

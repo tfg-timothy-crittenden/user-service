@@ -3,10 +3,12 @@ package com.timcritt.tfg.infrastructure.service;
 import com.timcritt.tfg.application.port.inbound.UserUseCase;
 import com.timcritt.tfg.application.port.outbound.UserRepositoryPort;
 import com.timcritt.tfg.application.service.UserUseCaseService;
+import com.timcritt.tfg.domain.model.RoleType;
 import com.timcritt.tfg.domain.model.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 // This class serves as an adapter that connects the application service implementation (UserUseCaseImpl)
@@ -61,5 +63,11 @@ public class UserServiceAdapter implements UserUseCase {
     @Transactional
     public Boolean deleteUser(Long id) {
         return delegate.deleteUser(id);
+    }
+
+    @Override
+    @Transactional
+    public List<User> getAllUsersByRoleType(RoleType role) {
+        return delegate.getAllUsersByRoleType(role);
     }
 }
