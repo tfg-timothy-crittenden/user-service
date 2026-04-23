@@ -81,10 +81,10 @@ public class AuthController {
             String username = authentication.getPrincipal() instanceof UserDetails userDetails
                     ? userDetails.getUsername()
                     : request.username();
-            String token = jwtTokenService.generateToken(username);
 
-            // Build the same user payload as /me
+            // Build the same user payload as /me (we need id, name and surname to include in the token)
             UserDto userDto = UserDtoMapper.toDto(userUseCase.getUserByUsername(username));
+            String token = jwtTokenService.generateToken(userDto.getId(), username, userDto.getName(), userDto.getSurname());
 
             return ResponseEntity.ok()
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)

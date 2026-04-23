@@ -21,12 +21,17 @@ public class JwtTokenService {
         this.secretKey = Keys.hmacShaKeyFor(keyBytes.length >= 32 ? keyBytes : padTo32Bytes(keyBytes));
     }
 
-    public String generateToken(String username) {
+    // Include userId, username, name and surname as claims in the token
+    public String generateToken(Long userId, String username, String name, String surname) {
         Instant now = Instant.now();
         return Jwts.builder()
-                .subject(username)
-                .issuedAt(Date.from(now))
-                .expiration(Date.from(now.plus(1, ChronoUnit.HOURS)))
+                .setSubject(username)
+                .claim("userId", userId)
+                .claim("username", username)
+                .claim("name", name)
+                .claim("surname", surname)
+                .setIssuedAt(Date.from(now))
+                .setExpiration(Date.from(now.plus(1, ChronoUnit.HOURS)))
                 .signWith(secretKey)
                 .compact();
     }
