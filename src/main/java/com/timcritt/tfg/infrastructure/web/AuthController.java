@@ -84,7 +84,7 @@ public class AuthController {
 
             // Build the same user payload as /me (we need id, name and surname to include in the token)
             UserDto userDto = UserDtoMapper.toDto(userUseCase.getUserByUsername(username));
-            String token = jwtTokenService.generateToken(userDto.getId(), username, userDto.getName(), userDto.getSurname());
+            String token = jwtTokenService.generateToken(userDto.getId(), username, userDto.getName(), userDto.getSurname(), userDto.getRoles());
 
             return ResponseEntity.ok()
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)

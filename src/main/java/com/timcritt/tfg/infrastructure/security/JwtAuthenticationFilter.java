@@ -58,11 +58,46 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             if (SecurityContextHolder.getContext().getAuthentication() == null) {
                 String username = claims.getSubject();
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+
+                // Try to read roles from the token. If present, use them to populate authorities and avoid a DB lookup.
+                java.util.Collection<? extends org.springframework.security.core.GrantedAuthority> authorities = java.util.Collections.<org.springframework.security.core.GrantedAuthority>emptyList();
+                Object rolesObj = claims.get("roles");
+                if (rolesObj instanceof java.util.Collection<?> roleList) {
+                    java.util.List<org.springframework.security.core.GrantedAuthority> auths = new java.util.ArrayList<>();
+                    for (Object r : roleList) {
+                        if (r != null) {
+                            String roleStr = r.toString();
+                            if (!roleStr.startsWith("ROLE_")) {
+                                roleStr = "ROLE_" + roleStr;
+                            }
+                            auths.add(new org.springframework.security.core.authority.SimpleGrantedAuthority(roleStr));
+                        }
+                    }
+                    authorities = auths;
+                } else {
+                    // Fallback: load authorities from UserDetailsService
+                    try {
+                        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                        authorities = userDetails.getAuthorities();
+                    } catch (Exception ignored) {
+                        // Leave authorities as the empty list assigned earlier
+                    }
+                }
+
+                // Build a CustomUserPrincipal from token claims so principal carries the id and authorities
+                Long userId = null;
+                Object idObj = claims.get("userId");
+                if (idObj instanceof Number) {
+                    userId = ((Number) idObj).longValue();
+                }
+
+                com.timcritt.tfg.infrastructure.security.CustomUserPrincipal principal =
+                        new com.timcritt.tfg.infrastructure.security.CustomUserPrincipal(userId, username, null, true, authorities);
+
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        userDetails,
+                        principal,
                         null,
-                        userDetails.getAuthorities()
+                        authorities
                 );
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
