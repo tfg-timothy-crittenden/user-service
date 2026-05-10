@@ -3,11 +3,15 @@ package com.timcritt.tfg.infrastructure.persistence;
 
 import com.timcritt.tfg.application.port.outbound.PlatformInvitationRepositoryPort;
 import com.timcritt.tfg.domain.model.PlatformInvitation;
+import com.timcritt.tfg.domain.model.RoleType;
 import com.timcritt.tfg.infrastructure.persistence.jpa.PlatformInvitationJpaEntity;
 import com.timcritt.tfg.infrastructure.persistence.spring.PlatformInvitationJpaRepository;
 import org.springframework.stereotype.Repository;
 
+
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Repository
 public class PlatformInvitationRepositoryAdapter implements PlatformInvitationRepositoryPort {
@@ -18,6 +22,11 @@ public class PlatformInvitationRepositoryAdapter implements PlatformInvitationRe
 
     public PlatformInvitationRepositoryAdapter(final PlatformInvitationJpaRepository repository) {
         this.repository = repository;
+    }
+
+    @Override
+    public List<PlatformInvitation> findPendingByRoleType(RoleType roleType) {
+        return this.repository.findPendingByRoleType(roleType).stream().map(PlatformInvitationEntityMapper::toDomain).collect(Collectors.toList());
     }
 
     @Override
@@ -35,7 +44,18 @@ public class PlatformInvitationRepositoryAdapter implements PlatformInvitationRe
     public void save(PlatformInvitation platformInvitation) {
         PlatformInvitationJpaEntity entity = PlatformInvitationEntityMapper.toEntity(platformInvitation);
         repository.save(entity);
+    }
 
+    @Override
+    public void deleteAllByIds(List<Long> ids) {
+        repository.deleteAllByIds(ids);
+    }
+
+    @Override
+    public List<PlatformInvitation> findAllByIds(List<Long> ids) {
+        return repository.findAllById(ids).stream()
+                .map(PlatformInvitationEntityMapper::toDomain)
+                .collect(Collectors.toList());
     }
 
     @Override

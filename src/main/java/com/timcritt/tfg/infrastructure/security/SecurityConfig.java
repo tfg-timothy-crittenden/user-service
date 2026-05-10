@@ -35,9 +35,10 @@ public class SecurityConfig {
                         request -> request.getRequestURI().startsWith("/api/")
                 ))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/send-platform-invitation", "/api/users/teachers").hasRole("ADMIN")
+                        .requestMatchers("/api/auth/send-platform-invitation", "/api/users/teachers", "/api/platform-invitations/**").hasRole("ADMIN")
+                        .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/users/*/roles/*").hasRole("ADMIN")
                         .requestMatchers("/login", "/error").permitAll()
-                        .requestMatchers("/api/auth/login", "/api/auth/signup", "/api/auth/confirm-email", "/api/auth/signup-with-invitation", "/api/auth/request-password-reset", "/api/auth/change-password").permitAll()
+                        .requestMatchers("/api/auth/login", "/api/auth/signup", "/api/auth/confirm-email", "/api/auth/signup-with-invitation", "/api/auth/request-password-reset", "/api/auth/change-password", "/api/auth/resend-verification-email").permitAll()
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                         .requestMatchers(
                                 "/swagger-ui/**",

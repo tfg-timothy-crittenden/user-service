@@ -1,8 +1,9 @@
-package com.timcritt.tfg.infrastructure.web;
+package com.timcritt.tfg.infrastructure.web.controller;
 
 import com.timcritt.tfg.application.port.inbound.UserUseCase;
 import com.timcritt.tfg.domain.model.RoleType;
 import com.timcritt.tfg.domain.model.User;
+import com.timcritt.tfg.infrastructure.web.UserDtoMapper;
 import com.timcritt.tfg.infrastructure.web.dto.UserDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +37,7 @@ public class UserController {
         return ResponseEntity.ok(UserDtoMapper.toDto(user));
     }
 
+    //Should only be for admins
     @GetMapping("/teachers")
     public List<UserDto> getAllTeachers() {
         log.info("GET /api/users");
@@ -45,6 +47,7 @@ public class UserController {
 
     }
 
+    //Should only be for self
     @PatchMapping("/{id}")
     public ResponseEntity<UserDto> update(@PathVariable Long id, @RequestBody UserDto dto) {
         return ResponseEntity.ok(
@@ -54,6 +57,14 @@ public class UserController {
         );
     }
 
+    //Should only be for admins
+    @DeleteMapping("/{id}/roles/{roleType}")
+    public ResponseEntity<UserDto> removeRole(@PathVariable Long id, @PathVariable RoleType roleType) {
+        log.info("DELETE /api/users/{}/roles/{}", id, roleType);
+        return ResponseEntity.ok(UserDtoMapper.toDto(useCase.removeRole(id, roleType)));
+    }
+
+    //Should only be for admins
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         useCase.deleteUser(id);

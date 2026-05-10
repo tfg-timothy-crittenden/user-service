@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import com.timcritt.tfg.application.exception.UserAlreadyExistsException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -18,6 +19,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AlreadyHasRoleException.class)
     public ResponseEntity<ErrorResponse> handleAlreadyHasRole(AlreadyHasRoleException ex, HttpServletRequest req) {
+        ErrorResponse body = new ErrorResponse(HttpStatus.CONFLICT.value(), HttpStatus.CONFLICT.getReasonPhrase(), ex.getMessage(), req.getRequestURI());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    }
+
+    @ExceptionHandler(UserAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponse> handleUserAlreadyExists(com.timcritt.tfg.application.exception.UserAlreadyExistsException ex, HttpServletRequest req) {
         ErrorResponse body = new ErrorResponse(HttpStatus.CONFLICT.value(), HttpStatus.CONFLICT.getReasonPhrase(), ex.getMessage(), req.getRequestURI());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }
@@ -38,6 +45,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleNotFound(UserNotFoundException ex, HttpServletRequest req) {
         ErrorResponse body = new ErrorResponse(HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND.getReasonPhrase(), ex.getMessage(), req.getRequestURI());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+    }
+
+    @ExceptionHandler(RoleNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleRoleNotFound(RoleNotFoundException ex, HttpServletRequest req) {
+        ErrorResponse body = new ErrorResponse(HttpStatus.UNPROCESSABLE_ENTITY.value(), HttpStatus.UNPROCESSABLE_ENTITY.getReasonPhrase(), ex.getMessage(), req.getRequestURI());
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(body);
     }
 
     @ExceptionHandler(EmailSendFailedException.class)

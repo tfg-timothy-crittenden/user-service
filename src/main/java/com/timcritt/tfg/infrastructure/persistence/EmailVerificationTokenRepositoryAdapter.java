@@ -38,6 +38,7 @@ public class EmailVerificationTokenRepositoryAdapter implements EmailVerificatio
 
     @Override
     public void delete(EmailVerificationToken emailVerificationToken) {
-        jpaRepository.delete(EmailVerificationTokenEntityMapper.toEntity(emailVerificationToken));
+        jpaRepository.deleteById(emailVerificationToken.getId());
+        jpaRepository.flush(); // force DELETE to DB before any subsequent INSERT in the same transaction to avoid 409
     }
 }

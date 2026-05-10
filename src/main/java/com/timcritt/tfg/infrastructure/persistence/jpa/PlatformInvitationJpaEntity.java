@@ -38,7 +38,7 @@ public class PlatformInvitationJpaEntity {
     private Instant confirmedAt;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "invitation_status", nullable = false, unique = true)
+    @Column(name = "invitation_status", nullable = false)
     @Getter @Setter
     private PlatformInvitationStatus platformInvitationStatus;
 
@@ -47,7 +47,7 @@ public class PlatformInvitationJpaEntity {
     private String token;
 
     @Enumerated(EnumType.STRING)
-    @Column(name ="role", nullable = false, unique = true)
+    @Column(name ="role", nullable = false)
     @Getter @Setter
     private RoleType roleType;
 

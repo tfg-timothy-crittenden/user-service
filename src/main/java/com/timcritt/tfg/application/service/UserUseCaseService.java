@@ -1,9 +1,12 @@
 package com.timcritt.tfg.application.service;
 
+import com.timcritt.tfg.application.exception.RoleNotFoundException;
 import com.timcritt.tfg.application.exception.UserNotFoundException;
 import com.timcritt.tfg.application.port.inbound.UserUseCase;
 import com.timcritt.tfg.application.port.outbound.UserRepositoryPort;
 import com.timcritt.tfg.domain.model.RoleType;
+import com.timcritt.tfg.application.exception.UserAlreadyExistsException;
+import com.timcritt.tfg.domain.model.Role;
 import com.timcritt.tfg.domain.model.User;
 
 import java.util.List;
@@ -49,6 +52,14 @@ public class UserUseCaseService implements UserUseCase {
 
     @Override
     public User createUser(String username, String name, String surname, String email, String passwordHash) {
+        // Prevent duplicate usernames or emails
+        if (repository.findByUsername(username).isPresent()) {
+            throw new UserAlreadyExistsException(username, "username");
+        }
+        if (repository.findByEmail(email).isPresent()) {
+            throw new UserAlreadyExistsException(email, "email");
+        }
+
         User user = new User();
         user.setUsername(username);
         user.setName(name);
@@ -68,5 +79,16 @@ public class UserUseCaseService implements UserUseCase {
     @Override
     public List<User> getAllUsersByRoleType(RoleType roleType) {
         return repository.findAllUsersByRoleType(roleType);
+    }
+
+    @Override
+    public User removeRole(Long userId, RoleType roleType) {
+        User user = repository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId, ""));
+        boolean had = user.getRoles().removeIf(r -> r.getRoleType() == roleType);
+        if (!had) {
+            throw new RoleNotFoundException(userId, roleType.name());
+        }
+        return repository.save(user);
     }
 }

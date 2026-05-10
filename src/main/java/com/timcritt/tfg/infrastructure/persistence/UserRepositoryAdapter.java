@@ -66,11 +66,21 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
                 managed.setPasswordHash(user.getPasswordHash());
                 managed.setVerified(user.isVerified());
 
-                // resolve roles and set on managed entity
+                // snapshot roles before we change anything
+                Set<RoleJpaEntity> previousRoles = new HashSet<>(managed.getUserRoles());
+
+                // resolve the new desired set of roles
                 Set<RoleJpaEntity> resolvedRoles = resolveRoles(user.getRoles());
                 managed.setUserRoles(resolvedRoles);
 
-                // ensure owning side contains the managed user (compare by id to avoid duplicates)
+                // remove user from the owning side of roles that were dropped
+                for (RoleJpaEntity removedRole : previousRoles) {
+                    if (!resolvedRoles.contains(removedRole)) {
+                        removedRole.getUsers().removeIf(u -> managed.getId().equals(u.getId()));
+                    }
+                }
+
+                // add user to the owning side of roles that are still/newly present
                 for (RoleJpaEntity role : resolvedRoles) {
                     if (!containsUserWithId(role.getUsers(), managed.getId())) {
                         role.getUsers().add(managed);

@@ -1,5 +1,7 @@
-package com.timcritt.tfg.infrastructure.web;
+package com.timcritt.tfg.infrastructure.web.controller;
 
+import com.timcritt.tfg.infrastructure.ratelimiting.ResendVerificationRateLimiter;
+import jakarta.servlet.http.HttpServletRequest;
 import com.timcritt.tfg.application.exception.UserNotFoundException;
 import com.timcritt.tfg.application.port.inbound.UserUseCase;
 import com.timcritt.tfg.domain.model.RoleType;
@@ -7,6 +9,7 @@ import com.timcritt.tfg.infrastructure.security.CustomUserPrincipal;
 import com.timcritt.tfg.infrastructure.security.JwtTokenService;
 import com.timcritt.tfg.infrastructure.service.PasswordResetAdapter;
 import com.timcritt.tfg.infrastructure.service.PlatformInvitationAdapter;
+import com.timcritt.tfg.infrastructure.web.UserDtoMapper;
 import com.timcritt.tfg.infrastructure.web.dto.UserDto;
 import com.timcritt.tfg.infrastructure.service.EmailVerificationAdapter;
 import jakarta.validation.Valid;
@@ -45,13 +48,17 @@ public class AuthController {
     private final EmailVerificationAdapter emailVerificationFacade;
     private final PlatformInvitationAdapter platformInvitationAdapter;
     private final PasswordResetAdapter passwordResetAdapter;
+    private final ResendVerificationRateLimiter resendRateLimiter;
 
     public AuthController(
             org.springframework.security.authentication.AuthenticationManager authenticationManager,
             JwtTokenService jwtTokenService,
             UserUseCase userUseCase,
             PasswordEncoder passwordEncoder,
-            EmailVerificationAdapter emailVerificationFacade, PlatformInvitationAdapter platformInvitationAdapter, PasswordResetAdapter passwordResetAdapter) {
+            EmailVerificationAdapter emailVerificationFacade,
+            PlatformInvitationAdapter platformInvitationAdapter,
+            PasswordResetAdapter passwordResetAdapter,
+            ResendVerificationRateLimiter resendRateLimiter) {
         this.authenticationManager = authenticationManager;
         this.jwtTokenService = jwtTokenService;
         this.userUseCase = userUseCase;
@@ -59,6 +66,7 @@ public class AuthController {
         this.emailVerificationFacade = emailVerificationFacade;
         this.platformInvitationAdapter = platformInvitationAdapter;
         this.passwordResetAdapter = passwordResetAdapter;
+        this.resendRateLimiter = resendRateLimiter;
     }
 
     @PostMapping("/login")
@@ -135,10 +143,10 @@ public class AuthController {
     }
 
     @PostMapping("/send-platform-invitation")
-    public ResponseEntity<?> sendPlatformInvitation(@Valid @RequestBody SendInvitationRequest invitationBody, @AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
+    public ResponseEntity<?> sendPlatformInvitation(@Valid @RequestBody SendInvitationRequest invitationBody) {
         log.info("POST /api/auth/send-platform-invitation");
 
-        platformInvitationAdapter.createAndSendPlatformInvitation(userPrincipal.getId(), invitationBody.email(), invitationBody.roleType());
+        platformInvitationAdapter.createAndSendPlatformInvitation(invitationBody.email(), invitationBody.roleType());
         return ResponseEntity.ok().build();
     }
 
@@ -146,6 +154,19 @@ public class AuthController {
     public ResponseEntity<?> signupWithInvitation(@Valid @RequestBody SignupWithInvitationRequest request) {
         log.info("POST /api/auth/signup-with-invitation");
         platformInvitationAdapter.signupWithInvitationToken(request.invitationToken(), request.username(), request.name(), request.surname(), request.password());
+        return ResponseEntity.ok().build();
+    }
+
+    // Only for unauthenticated users: require an email in the request body
+    @PostMapping("/resend-verification-email")
+    public ResponseEntity<?> resendVerificationEmail(@Valid @RequestBody ResendVerificationEmailRequest body, HttpServletRequest request) {
+        log.info("POST /api/auth/resend-verification-email");
+        String ip = request.getRemoteAddr();
+        if (!resendRateLimiter.tryConsume(body.email().trim().toLowerCase(), ip)) {
+            return ResponseEntity.status(429).body(java.util.Map.of("error", "Too many requests. Please try again later."));
+        }
+        // Always returns 200 — even if the email is unknown or already verified (prevents user enumeration)
+        emailVerificationFacade.resendVerificationEmail(body.email());
         return ResponseEntity.ok().build();
     }
 
@@ -179,5 +200,6 @@ public class AuthController {
 
     public record RequestPasswordResetRequest(@NotBlank String email) { }
     public record SetNewPasswordRequest(@NotBlank String newPassword) { }
+    public record ResendVerificationEmailRequest(@NotBlank String email) { }
 
 }

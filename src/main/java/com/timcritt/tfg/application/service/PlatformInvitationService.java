@@ -10,9 +10,7 @@ import com.timcritt.tfg.application.exception.ActiveInvitationExistsException;
 import com.timcritt.tfg.application.exception.InvitationNotFoundException;
 
 import java.time.Instant;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -22,12 +20,35 @@ public class PlatformInvitationService {
     private final PlatformInvitationRepositoryPort platformInvitationRepository;
     private final EmailSenderPort emailSender;
     private final UserRepositoryPort userRepository;
+    private final String invitationUrlTemplate;
 
-    public PlatformInvitationService(PasswordEncoderPort passwordEncoder, PlatformInvitationRepositoryPort platformInvitationJpaRepository, EmailSenderPort emailSender, UserRepositoryPort userRepository) {
+    public PlatformInvitationService(PasswordEncoderPort passwordEncoder, PlatformInvitationRepositoryPort platformInvitationJpaRepository, EmailSenderPort emailSender, UserRepositoryPort userRepository, String invitationUrlTemplate) {
         this.passwordEncoder = passwordEncoder;
         this.platformInvitationRepository = platformInvitationJpaRepository;
         this.emailSender = emailSender;
         this.userRepository = userRepository;
+        this.invitationUrlTemplate = invitationUrlTemplate;
+    }
+
+    public List<PlatformInvitation> findPendingByRoleType(RoleType roleType) {
+        return platformInvitationRepository.findPendingByRoleType(roleType);
+    }
+
+    public BatchDeleteResult deleteAllByIds(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) return new BatchDeleteResult(List.of(), List.of());
+
+        List<Long> existingIds = platformInvitationRepository.findAllByIds(ids)
+                .stream().map(PlatformInvitation::getId).toList();
+
+        List<Long> notFound = ids.stream()
+                .filter(id -> !existingIds.contains(id))
+                .toList();
+
+        if (!existingIds.isEmpty()) {
+            platformInvitationRepository.deleteAllByIds(existingIds);
+        }
+
+        return new BatchDeleteResult(existingIds, notFound);
     }
 
     public void createAndSendPlatformInvitation(Long createdByUserId, String inviteeEmail, RoleType roleType) {
@@ -79,7 +100,7 @@ public class PlatformInvitationService {
                     throw new ActiveInvitationExistsException(normalizedEmail);
                 }
 
-                String link = "http://localhost:8082/api/auth/confirm-email?token=" + newToken;
+                String link = invitationUrlTemplate.replace("{token}", newToken);
                 CompletableFuture.runAsync(() -> {
                     try { emailSender.sendInvitationEmail(normalizedEmail, link); }
                     catch (Exception e) { throw new RuntimeException(e); }
@@ -102,7 +123,7 @@ public class PlatformInvitationService {
                 throw new ActiveInvitationExistsException(normalizedEmail);
             }
 
-            String link = "http://localhost:8082/api/auth/confirm-email?token=" + token;
+            String link = invitationUrlTemplate.replace("{token}", token);
             CompletableFuture.runAsync(() -> {
                 try { emailSender.sendInvitationEmail(normalizedEmail, link); }
                 catch (Exception e) { throw new RuntimeException(e); }
@@ -127,12 +148,34 @@ public class PlatformInvitationService {
             throw new ActiveInvitationExistsException(normalizedEmail);
         }
 
-        String link = "http://localhost:8082/api/auth/confirm-email?token=" + token;
+        String link = invitationUrlTemplate.replace("{token}", token);
         CompletableFuture.runAsync(() -> {
             try { emailSender.sendInvitationEmail(normalizedEmail, link); }
             catch (Exception e) { throw new RuntimeException(e); }
         });
     }
+    public void resendInvitation(Long invitationId) {
+        PlatformInvitation invitation = platformInvitationRepository.findByInvitationId(invitationId)
+                .orElseThrow(() -> new InvitationNotFoundException(String.valueOf(invitationId)));
+
+        Instant now = Instant.now();
+        String newToken = UUID.randomUUID().toString();
+        invitation.setToken(newToken);
+        invitation.setCreatedAt(now);
+        invitation.setExpiresAt(now.plusSeconds(60 * 60 * 24)); // 24h
+        invitation.setPlatformInvitationStatus(PlatformInvitationStatus.PENDING);
+        invitation.setConfirmedAt(null);
+
+        platformInvitationRepository.save(invitation);
+
+        String link = invitationUrlTemplate.replace("{token}", newToken);
+        String email = invitation.getInviteeEmail();
+        CompletableFuture.runAsync(() -> {
+            try { emailSender.sendInvitationEmail(email, link); }
+            catch (Exception e) { throw new RuntimeException(e); }
+        });
+    }
+
     public void signUpWIthInvitationToken(String token, String username, String name, String surname, String password) {
         // Check that the invitation with that token exists
         Optional<PlatformInvitation> invitationOpt = platformInvitationRepository.findByToken(token);

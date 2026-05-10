@@ -14,6 +14,7 @@ public interface UserUseCase {
     User updateUser(Long id, String username, String name, String surname, String email);
     Boolean deleteUser(Long id);
     List<User> getAllUsersByRoleType(RoleType role);
+    User removeRole(Long userId, RoleType roleType);
     // Attempt to find a user by username or email; returns Optional.empty() if not found.
     Optional<User> findByIdentifier(String usernameOrEmail);
 }
