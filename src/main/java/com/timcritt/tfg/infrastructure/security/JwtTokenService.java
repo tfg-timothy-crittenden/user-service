@@ -1,6 +1,7 @@
 package com.timcritt.tfg.infrastructure.security;
 
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -17,17 +18,20 @@ import java.util.stream.Collectors;
 public class JwtTokenService {
 
     private final SecretKey secretKey;
+    private final SignatureAlgorithm algorithm;
 
-    public JwtTokenService(@Value("${app.jwt.secret:change-me-change-me-change-me-change-me}") String secret) {
+    public JwtTokenService(
+            @Value("${app.jwt.secret:change-me-change-me-change-me-change-me}") String secret,
+            @Value("${app.jwt.algorithm:HS256}") String algorithm
+    ) {
         byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
         this.secretKey = Keys.hmacShaKeyFor(keyBytes.length >= 32 ? keyBytes : padTo32Bytes(keyBytes));
+        this.algorithm = SignatureAlgorithm.valueOf(algorithm);
     }
 
-    // Include userId, username, name, surname and roles as claims in the token
     public String generateToken(Long userId, String username, String name, String surname, Set<String> roles) {
         Instant now = Instant.now();
 
-        // Normalize roles to the ROLE_ prefix so tokens are always compatible with Spring's hasRole checks
         Set<String> normalizedRoles = java.util.Optional.ofNullable(roles)
                 .map(rs -> rs.stream()
                         .filter(java.util.Objects::nonNull)
@@ -44,7 +48,7 @@ public class JwtTokenService {
                 .claim("roles", normalizedRoles)
                 .setIssuedAt(Date.from(now))
                 .setExpiration(Date.from(now.plus(1, ChronoUnit.HOURS)))
-                .signWith(secretKey)
+                .signWith(secretKey, algorithm)
                 .compact();
     }
 
