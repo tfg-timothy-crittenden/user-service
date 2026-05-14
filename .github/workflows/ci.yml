@@ -25,12 +25,40 @@ jobs:
       - name: Build
         run: mvn -B clean verify
 
+      - name: Print test failure details
+        if: failure()
+        run: |
+          echo "==== Surefire report files ===="
+          ls -la target/surefire-reports || true
+
+          echo ""
+          echo "==== Full TXT reports ===="
+          cat target/surefire-reports/*.txt || true
+
+          echo ""
+          echo "==== Caused by / exception lines from all reports ===="
+          grep -R -n -E "Caused by|Exception|Failed to|ERROR|Error creating bean|Unsatisfied dependency|Could not resolve placeholder" target/surefire-reports || true
+
+          echo ""
+          echo "==== Dump files, if any ===="
+          ls -la target/*.dump target/*.dumpstream 2>/dev/null || true
+          cat target/*.dump target/*.dumpstream 2>/dev/null || true
+
       - name: Upload Maven build output
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: maven-target
           path: target/
           retention-days: 1
+
+      - name: Upload test reports on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: target/surefire-reports/
+          retention-days: 3
 
   sonarqube:
     name: SonarQube Cloud Scan
