@@ -1,5 +1,2 @@
-ALTER TABLE platform_invitation
-    RENAME COLUMN platform_invitation_status TO invitation_status;
-
-ALTER TABLE platform_invitation
-    RENAME COLUMN role_type TO role;
+-- No-op.
+-- The platform_invitation columns are already created with their final names in V3.
