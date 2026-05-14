@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.timcritt</groupId>
-	<artifactId>toefl-speaking-service</artifactId>
+	<artifactId>user-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>toefl-speaking-service</name>
-	<description>TOEFL Speaking Practice Service - provides speaking exam content and practice functionality</description>
+	<description>TOEFL user service - provides authentication and authorization</description>
 	<url/>
 	<licenses>
 		<license/>
