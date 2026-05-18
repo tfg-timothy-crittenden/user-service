@@ -67,3 +67,15 @@ WHERE r.role_type = 'ADMIN'
     SELECT 1 FROM user_roles ur
     WHERE ur.role_id = r.id AND ur.user_id = u.id
   );
+
+-- rjohnson -> TEACHER
+INSERT INTO user_roles (role_id, user_id)
+SELECT r.id, u.id
+FROM role r
+JOIN users u ON u.email = 'robert.johnson@example.com'
+WHERE r.role_type = 'TEACHER'
+  AND NOT EXISTS (
+    SELECT 1 FROM user_roles ur
+    WHERE ur.role_id = r.id AND ur.user_id = u.id
+  );
+
