@@ -6,12 +6,14 @@
 -- Users table
 CREATE TABLE IF NOT EXISTS users (
     id BIGSERIAL PRIMARY KEY,
-    username VARCHAR(255),
+    username VARCHAR(255) UNIQUE,
     name VARCHAR(255),
     surname VARCHAR(255),
     email VARCHAR(255) NOT NULL,
     password_hash VARCHAR(255),
-    CONSTRAINT uq_users_email UNIQUE (email)
+    verified BOOLEAN DEFAULT FALSE NOT NULL,
+    CONSTRAINT uq_users_email UNIQUE (email),
+    CONSTRAINT uq_users_username UNIQUE (username)
 );
 
 -- Role table

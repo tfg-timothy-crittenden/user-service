@@ -1,3 +1,0 @@
--- No-op.
--- The old ux_password_reset_token_user_id constraint is no longer created in V6,
--- so there is nothing to drop for fresh databases.

@@ -189,7 +189,7 @@ public class PlatformInvitationService {
         Instant now = Instant.now();
         Instant expiresAt = invitation.getExpiresAt();
         if (now.isAfter(expiresAt)) {
-            throw new IllegalStateException("PlatformInvitation token expired");
+            throw new com.timcritt.tfg.application.exception.InvitationExpiredException();
         }
 
         // check the token has state pending

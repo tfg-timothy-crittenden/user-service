@@ -1,3 +1,0 @@
--- No-op.
--- Earlier migrations now create platform_invitation without unintended unique constraints.
--- The old PostgreSQL-only cleanup block is not needed for fresh CI databases.

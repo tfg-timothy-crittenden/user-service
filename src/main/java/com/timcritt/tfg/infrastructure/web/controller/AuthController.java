@@ -153,8 +153,12 @@ public class AuthController {
     @PostMapping("/signup-with-invitation")
     public ResponseEntity<?> signupWithInvitation(@Valid @RequestBody SignupWithInvitationRequest request) {
         log.info("POST /api/auth/signup-with-invitation");
-        platformInvitationAdapter.signupWithInvitationToken(request.invitationToken(), request.username(), request.name(), request.surname(), request.password());
-        return ResponseEntity.ok().build();
+        try {
+            platformInvitationAdapter.signupWithInvitationToken(request.invitationToken(), request.username(), request.name(), request.surname(), request.password());
+            return ResponseEntity.ok().build();
+        } catch (com.timcritt.tfg.application.exception.InvitationExpiredException e) {
+            return ResponseEntity.status(410).body(java.util.Map.of("error", e.getMessage()));
+        }
     }
 
     // Only for unauthenticated users: require an email in the request body

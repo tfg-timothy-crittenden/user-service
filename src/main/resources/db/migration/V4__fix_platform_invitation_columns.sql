@@ -1,2 +1,0 @@
--- No-op.
--- The platform_invitation columns are already created with their final names in V3.

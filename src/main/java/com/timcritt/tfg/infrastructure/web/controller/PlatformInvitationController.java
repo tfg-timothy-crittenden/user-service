@@ -1,8 +1,6 @@
 package com.timcritt.tfg.infrastructure.web.controller;
 
 
-import com.timcritt.tfg.infrastructure.ratelimiting.ResendVerificationRateLimiter;
-import jakarta.servlet.http.HttpServletRequest;
 import com.timcritt.tfg.application.service.BatchDeleteResult;
 import com.timcritt.tfg.domain.model.PlatformInvitation;
 import com.timcritt.tfg.domain.model.RoleType;
@@ -21,11 +19,10 @@ import java.util.List;
 public class PlatformInvitationController {
 
     private final PlatformInvitationAdapter platformInvitationAdapter;
-    private final ResendVerificationRateLimiter rateLimiter;
 
-    public PlatformInvitationController(PlatformInvitationAdapter platformInvitationAdapter, ResendVerificationRateLimiter rateLimiter) {
+
+    public PlatformInvitationController(PlatformInvitationAdapter platformInvitationAdapter) {
         this.platformInvitationAdapter = platformInvitationAdapter;
-        this.rateLimiter = rateLimiter;
     }
 
     @GetMapping("/pending-teachers")
@@ -36,10 +33,7 @@ public class PlatformInvitationController {
     }
 
     @PostMapping("/{id}/resend")
-    public ResponseEntity<?> resendInvitation(@PathVariable Long id, HttpServletRequest request) {
-        if (!rateLimiter.tryConsumeInvitation(id, request.getRemoteAddr())) {
-            return ResponseEntity.status(429).body(java.util.Map.of("error", "Too many requests. Please try again later."));
-        }
+    public ResponseEntity<Void> resendInvitation(@PathVariable Long id) {
         platformInvitationAdapter.resendInvitation(id);
         return ResponseEntity.noContent().build();
     }
