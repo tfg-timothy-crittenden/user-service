@@ -39,7 +39,7 @@ public class SecurityConfig {
                         .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/users/*/roles/*").hasRole("ADMIN")
                         .requestMatchers("/login", "/error").permitAll()
                         .requestMatchers("/api/auth/login", "/api/auth/signup", "/api/auth/confirm-email", "/api/auth/signup-with-invitation", "/api/auth/request-password-reset", "/api/auth/change-password", "/api/auth/resend-verification-email").permitAll()
-                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()
+                        .requestMatchers("/actuator/health", "/actuator/info", "/actuator/prometheus").permitAll()
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
