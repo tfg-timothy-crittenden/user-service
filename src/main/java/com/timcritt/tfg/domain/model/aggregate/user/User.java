@@ -55,7 +55,7 @@ public class User {
 
     //#################################################################################################################################################
 
-    public void assignRole(Role role) {
+    public void grantRole(Role role) {
         if(role == null ) {
             throw new NullPointerException("role cannot be null");
         }
