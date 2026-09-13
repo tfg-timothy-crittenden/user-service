@@ -61,7 +61,8 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
                 managed.setEmail(user.getEmail());
                 managed.setPasswordHash(user.getPasswordHash().value());
                 managed.setVerified(user.isVerified());
-                managed.setRoles(user.getRoles());
+                managed.getUserRoles().clear();
+                managed.getUserRoles().addAll(user.getRoles());
 
                 UserJpaEntity saved = jpaRepository.save(managed);
                 return UserEntityMapper.toDomain(saved);

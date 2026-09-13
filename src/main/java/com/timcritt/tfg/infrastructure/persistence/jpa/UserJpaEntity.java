@@ -10,24 +10,29 @@ import java.util.Set;
 
 @Entity
 @Table(name = "users")
-@Getter
-@Setter
+
 public class UserJpaEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Getter @Setter
     private String username;
+    @Getter @Setter
     private String name;
+    @Getter @Setter
     private String surname;
 
+    @Getter @Setter
     @Column(name = "password_hash")
     private String passwordHash;
 
+    @Getter @Setter
     @Column(nullable = false, unique = true)
     private String email;
 
+    @Getter @Setter
     @Column(name = "verified", nullable = false)
     private boolean verified = false;
 

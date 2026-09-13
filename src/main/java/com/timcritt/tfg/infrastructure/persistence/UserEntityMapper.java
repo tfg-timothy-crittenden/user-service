@@ -37,7 +37,7 @@ public class UserEntityMapper {
         entity.setEmail(domain.getEmail());
         entity.setPasswordHash(domain.getPasswordHash().value());
         entity.setVerified(domain.isVerified());
-        entity.setUserRoles(new HashSet<>());
+        entity.setUserRoles(domain.getRoles());
 
         return entity;
     }
