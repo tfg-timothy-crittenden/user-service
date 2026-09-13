@@ -8,6 +8,10 @@ import com.timcritt.tfg.domain.model.*;
 import com.timcritt.tfg.application.exception.AlreadyHasRoleException;
 import com.timcritt.tfg.application.exception.ActiveInvitationExistsException;
 import com.timcritt.tfg.application.exception.InvitationNotFoundException;
+import com.timcritt.tfg.domain.model.aggregate.platformInvitation.PlatformInvitation;
+import com.timcritt.tfg.domain.model.aggregate.platformInvitation.PlatformInvitationStatus;
+import com.timcritt.tfg.domain.model.aggregate.user.PasswordHash;
+import com.timcritt.tfg.domain.model.aggregate.user.User;
 
 import java.time.Instant;
 import java.util.*;
@@ -210,7 +214,7 @@ public class PlatformInvitationService {
         }
 
         // encode the password
-        String passwordHash = passwordEncoder.encode(password);
+        PasswordHash passwordHash = PasswordHash.of(passwordEncoder.encode(password));
 
         // Retrieve the roleType from the invitation and create role set
         RoleType roleType = invitation.getRoleType();
@@ -226,7 +230,7 @@ public class PlatformInvitationService {
         user.setEmail(inviteeEmail);
         user.setVerified(true);
         user.setRoles(roles);
-        user.setPasswordHash(passwordHash);
+        user.changePassword(passwordHash);
 
         userRepository.save(user);
 

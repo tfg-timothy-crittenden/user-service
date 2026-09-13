@@ -1,6 +1,6 @@
 package com.timcritt.tfg.application.port.outbound;
 
-import com.timcritt.tfg.domain.model.PlatformInvitation;
+import com.timcritt.tfg.domain.model.aggregate.platformInvitation.PlatformInvitation;
 import com.timcritt.tfg.domain.model.RoleType;
 
 import java.util.List;

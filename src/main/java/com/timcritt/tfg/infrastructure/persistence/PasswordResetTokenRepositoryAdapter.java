@@ -1,7 +1,7 @@
 package com.timcritt.tfg.infrastructure.persistence;
 
 import com.timcritt.tfg.application.port.outbound.PasswordResetTokenRepositoryPort;
-import com.timcritt.tfg.domain.model.PasswordResetToken;
+import com.timcritt.tfg.domain.model.aggregate.passwordReset.PasswordResetToken;
 import com.timcritt.tfg.infrastructure.persistence.spring.PasswordResetTokenJpaRepository;
 import org.springframework.stereotype.Repository;
 

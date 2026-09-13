@@ -1,6 +1,6 @@
 package com.timcritt.tfg.infrastructure.web.dto;
 
-import com.timcritt.tfg.domain.model.PlatformInvitationStatus;
+import com.timcritt.tfg.domain.model.aggregate.platformInvitation.PlatformInvitationStatus;
 import com.timcritt.tfg.domain.model.RoleType;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

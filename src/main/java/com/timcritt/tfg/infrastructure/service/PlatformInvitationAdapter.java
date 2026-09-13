@@ -9,7 +9,7 @@ import com.timcritt.tfg.application.service.PlatformInvitationService;
 import com.timcritt.tfg.infrastructure.security.CustomUserPrincipal;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import com.timcritt.tfg.domain.model.PlatformInvitation;
+import com.timcritt.tfg.domain.model.aggregate.platformInvitation.PlatformInvitation;
 import com.timcritt.tfg.domain.model.RoleType;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

@@ -6,8 +6,8 @@ import com.timcritt.tfg.application.port.inbound.UserUseCase;
 import com.timcritt.tfg.application.port.outbound.UserRepositoryPort;
 import com.timcritt.tfg.domain.model.RoleType;
 import com.timcritt.tfg.application.exception.UserAlreadyExistsException;
-import com.timcritt.tfg.domain.model.Role;
-import com.timcritt.tfg.domain.model.User;
+import com.timcritt.tfg.domain.model.aggregate.user.PasswordHash;
+import com.timcritt.tfg.domain.model.aggregate.user.User;
 
 import java.util.List;
 import java.util.Optional;
@@ -65,7 +65,7 @@ public class UserUseCaseService implements UserUseCase {
         user.setName(name);
         user.setSurname(surname);
         user.setEmail(email);
-        user.setPasswordHash(passwordHash);
+        user.changePassword(PasswordHash.of(passwordHash));
         user.addRoleType(RoleType.STUDENT);
         return repository.save(user);
     }

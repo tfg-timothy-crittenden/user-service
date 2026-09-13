@@ -1,6 +1,6 @@
 package com.timcritt.tfg.application.port.outbound;
 
-import com.timcritt.tfg.domain.model.EmailVerificationToken;
+import com.timcritt.tfg.domain.model.aggregate.user.EmailVerificationToken;
 
 import java.util.Optional;
 

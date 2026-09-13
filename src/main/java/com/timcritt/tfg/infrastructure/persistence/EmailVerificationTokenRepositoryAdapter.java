@@ -1,7 +1,7 @@
 package com.timcritt.tfg.infrastructure.persistence;
 
 import com.timcritt.tfg.application.port.outbound.EmailVerificationTokenRepositoryPort;
-import com.timcritt.tfg.domain.model.EmailVerificationToken;
+import com.timcritt.tfg.domain.model.aggregate.user.EmailVerificationToken;
 import com.timcritt.tfg.infrastructure.persistence.spring.EmailVerificationTokenJpaRepository;
 import org.springframework.stereotype.Repository;
 

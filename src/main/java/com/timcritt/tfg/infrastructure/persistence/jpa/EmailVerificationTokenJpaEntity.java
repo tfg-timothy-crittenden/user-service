@@ -1,5 +1,6 @@
 package com.timcritt.tfg.infrastructure.persistence.jpa;
 
+import com.timcritt.tfg.domain.model.aggregate.user.EmailVerificationStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -37,5 +38,5 @@ public class EmailVerificationTokenJpaEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private com.timcritt.tfg.domain.model.EmailVerificationStatus status;
+    private EmailVerificationStatus status;
 }

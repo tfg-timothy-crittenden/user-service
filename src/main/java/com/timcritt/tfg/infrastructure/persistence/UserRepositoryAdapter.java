@@ -3,7 +3,7 @@ package com.timcritt.tfg.infrastructure.persistence;
 import com.timcritt.tfg.application.port.outbound.UserRepositoryPort;
 import com.timcritt.tfg.domain.model.Role;
 import com.timcritt.tfg.domain.model.RoleType;
-import com.timcritt.tfg.domain.model.User;
+import com.timcritt.tfg.domain.model.aggregate.user.User;
 import com.timcritt.tfg.infrastructure.persistence.jpa.RoleJpaEntity;
 import com.timcritt.tfg.infrastructure.persistence.jpa.UserJpaEntity;
 import com.timcritt.tfg.infrastructure.persistence.spring.RoleJpaRepository;
@@ -63,7 +63,7 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
                 managed.setName(user.getName());
                 managed.setSurname(user.getSurname());
                 managed.setEmail(user.getEmail());
-                managed.setPasswordHash(user.getPasswordHash());
+                managed.setPasswordHash(user.getPasswordHash().value());
                 managed.setVerified(user.isVerified());
 
                 // snapshot roles before we change anything

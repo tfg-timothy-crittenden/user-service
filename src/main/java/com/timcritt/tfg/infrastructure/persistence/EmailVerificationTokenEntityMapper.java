@@ -1,6 +1,6 @@
 package com.timcritt.tfg.infrastructure.persistence;
 
-import com.timcritt.tfg.domain.model.EmailVerificationToken;
+import com.timcritt.tfg.domain.model.aggregate.user.EmailVerificationToken;
 import com.timcritt.tfg.infrastructure.persistence.jpa.EmailVerificationTokenJpaEntity;
 import com.timcritt.tfg.infrastructure.persistence.jpa.UserJpaEntity;
 

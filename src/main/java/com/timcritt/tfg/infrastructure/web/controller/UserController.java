@@ -2,7 +2,7 @@ package com.timcritt.tfg.infrastructure.web.controller;
 
 import com.timcritt.tfg.application.port.inbound.UserUseCase;
 import com.timcritt.tfg.domain.model.RoleType;
-import com.timcritt.tfg.domain.model.User;
+import com.timcritt.tfg.domain.model.aggregate.user.User;
 import com.timcritt.tfg.infrastructure.web.UserDtoMapper;
 import com.timcritt.tfg.infrastructure.web.dto.UserDto;
 import org.slf4j.Logger;

@@ -1,6 +1,6 @@
 package com.timcritt.tfg.application.port.outbound;
 
-import com.timcritt.tfg.domain.model.PasswordResetToken;
+import com.timcritt.tfg.domain.model.aggregate.passwordReset.PasswordResetToken;
 
 import java.util.List;
 import java.util.Optional;

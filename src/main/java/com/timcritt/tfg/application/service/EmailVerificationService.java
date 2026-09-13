@@ -3,8 +3,8 @@ package com.timcritt.tfg.application.service;
 import com.timcritt.tfg.application.port.outbound.EmailSenderPort;
 import com.timcritt.tfg.application.port.outbound.EmailVerificationTokenRepositoryPort;
 import com.timcritt.tfg.application.port.outbound.UserRepositoryPort;
-import com.timcritt.tfg.domain.model.EmailVerificationToken;
-import com.timcritt.tfg.domain.model.User;
+import com.timcritt.tfg.domain.model.aggregate.user.EmailVerificationToken;
+import com.timcritt.tfg.domain.model.aggregate.user.User;
 
 import java.time.Instant;
 import java.util.UUID;

@@ -1,6 +1,6 @@
 package com.timcritt.tfg.infrastructure.persistence;
 
-import com.timcritt.tfg.domain.model.PasswordResetToken;
+import com.timcritt.tfg.domain.model.aggregate.passwordReset.PasswordResetToken;
 import com.timcritt.tfg.infrastructure.persistence.jpa.PasswordResetTokenJpaEntity;
 import com.timcritt.tfg.infrastructure.persistence.jpa.UserJpaEntity;
 

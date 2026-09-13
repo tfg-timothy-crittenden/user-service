@@ -1,7 +1,8 @@
 package com.timcritt.tfg.infrastructure.persistence;
 
 import com.timcritt.tfg.domain.model.Role;
-import com.timcritt.tfg.domain.model.User;
+import com.timcritt.tfg.domain.model.aggregate.user.PasswordHash;
+import com.timcritt.tfg.domain.model.aggregate.user.User;
 import com.timcritt.tfg.infrastructure.persistence.jpa.UserJpaEntity;
 
 import java.util.HashSet;
@@ -27,7 +28,7 @@ public class UserEntityMapper {
                 entity.getSurname(),
                 entity.getEmail(),
                 roles,
-                entity.getPasswordHash()
+                PasswordHash.of(entity.getPasswordHash())
         );
         user.setVerified(entity.isVerified());
         return user;
@@ -42,7 +43,7 @@ public class UserEntityMapper {
         entity.setName(domain.getName());
         entity.setSurname(domain.getSurname());
         entity.setEmail(domain.getEmail());
-        entity.setPasswordHash(domain.getPasswordHash());
+        entity.setPasswordHash(domain.getPasswordHash().value());
         entity.setVerified(domain.isVerified());
         entity.setUserRoles(new HashSet<>());
 

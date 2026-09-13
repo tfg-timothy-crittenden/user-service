@@ -2,7 +2,7 @@ package com.timcritt.tfg.infrastructure.web.controller;
 
 
 import com.timcritt.tfg.application.service.BatchDeleteResult;
-import com.timcritt.tfg.domain.model.PlatformInvitation;
+import com.timcritt.tfg.domain.model.aggregate.platformInvitation.PlatformInvitation;
 import com.timcritt.tfg.domain.model.RoleType;
 import com.timcritt.tfg.infrastructure.service.PlatformInvitationAdapter;
 import com.timcritt.tfg.infrastructure.web.PlatformInvitationDtoMapper;

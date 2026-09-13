@@ -1,7 +1,8 @@
-package com.timcritt.tfg.domain.model;
+package com.timcritt.tfg.domain.model.aggregate.platformInvitation;
 
 import java.time.Instant;
-import com.timcritt.tfg.domain.model.PlatformInvitationStatus;
+
+import com.timcritt.tfg.domain.model.RoleType;
 
 public class PlatformInvitation {
 

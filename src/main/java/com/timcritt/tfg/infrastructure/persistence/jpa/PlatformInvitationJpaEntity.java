@@ -1,7 +1,7 @@
 package com.timcritt.tfg.infrastructure.persistence.jpa;
 
 
-import com.timcritt.tfg.domain.model.PlatformInvitationStatus;
+import com.timcritt.tfg.domain.model.aggregate.platformInvitation.PlatformInvitationStatus;
 import com.timcritt.tfg.domain.model.RoleType;
 import jakarta.persistence.*;
 import lombok.Getter;

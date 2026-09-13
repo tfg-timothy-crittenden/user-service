@@ -1,7 +1,7 @@
 // java
 package com.timcritt.tfg.infrastructure.security;
 
-import com.timcritt.tfg.domain.model.User;
+import com.timcritt.tfg.domain.model.aggregate.user.User;
 import com.timcritt.tfg.domain.model.Role;
 import com.timcritt.tfg.application.port.outbound.UserRepositoryPort;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -36,7 +36,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         return new CustomUserPrincipal(
                 user.getId(),
                 user.getUsername(),
-                user.getPasswordHash(),
+                user.getPasswordHash().value(),
                 user.isVerified(),
                 authorities
         );

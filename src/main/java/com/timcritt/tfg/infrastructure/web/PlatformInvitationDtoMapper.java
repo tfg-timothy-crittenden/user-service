@@ -1,6 +1,6 @@
 package com.timcritt.tfg.infrastructure.web;
 
-import com.timcritt.tfg.domain.model.PlatformInvitation;
+import com.timcritt.tfg.domain.model.aggregate.platformInvitation.PlatformInvitation;
 import com.timcritt.tfg.infrastructure.web.dto.PlatformInvitationDto;
 import lombok.NoArgsConstructor;
 

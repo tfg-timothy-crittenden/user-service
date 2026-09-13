@@ -2,7 +2,7 @@
 package com.timcritt.tfg.infrastructure.persistence;
 
 import com.timcritt.tfg.application.port.outbound.PlatformInvitationRepositoryPort;
-import com.timcritt.tfg.domain.model.PlatformInvitation;
+import com.timcritt.tfg.domain.model.aggregate.platformInvitation.PlatformInvitation;
 import com.timcritt.tfg.domain.model.RoleType;
 import com.timcritt.tfg.infrastructure.persistence.jpa.PlatformInvitationJpaEntity;
 import com.timcritt.tfg.infrastructure.persistence.spring.PlatformInvitationJpaRepository;

@@ -2,7 +2,7 @@ package com.timcritt.tfg.infrastructure.web;
 
 import com.timcritt.tfg.domain.model.Role;
 import com.timcritt.tfg.domain.model.RoleType;
-import com.timcritt.tfg.domain.model.User;
+import com.timcritt.tfg.domain.model.aggregate.user.User;
 import com.timcritt.tfg.infrastructure.web.dto.UserDto;
 
 import java.util.HashSet;

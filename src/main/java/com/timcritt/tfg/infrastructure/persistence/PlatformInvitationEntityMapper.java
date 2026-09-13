@@ -1,6 +1,6 @@
 package com.timcritt.tfg.infrastructure.persistence;
 
-import com.timcritt.tfg.domain.model.PlatformInvitation;
+import com.timcritt.tfg.domain.model.aggregate.platformInvitation.PlatformInvitation;
 import com.timcritt.tfg.infrastructure.persistence.jpa.PlatformInvitationJpaEntity;
 
 public class PlatformInvitationEntityMapper {

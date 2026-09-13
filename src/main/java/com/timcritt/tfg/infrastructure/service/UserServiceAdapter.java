@@ -6,7 +6,7 @@ import com.timcritt.tfg.application.port.outbound.UserRepositoryPort;
 import com.timcritt.tfg.application.service.UserUseCaseService;
 import com.timcritt.tfg.domain.event.TeacherRoleRevokedEvent;
 import com.timcritt.tfg.domain.model.RoleType;
-import com.timcritt.tfg.domain.model.User;
+import com.timcritt.tfg.domain.model.aggregate.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

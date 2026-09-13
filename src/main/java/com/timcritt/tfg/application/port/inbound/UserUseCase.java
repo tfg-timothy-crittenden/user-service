@@ -1,7 +1,7 @@
 package com.timcritt.tfg.application.port.inbound;
 
 import com.timcritt.tfg.domain.model.RoleType;
-import com.timcritt.tfg.domain.model.User;
+import com.timcritt.tfg.domain.model.aggregate.user.User;
 
 import java.util.List;
 import java.util.Optional;

@@ -1,6 +1,5 @@
 package com.timcritt.tfg.infrastructure.persistence.spring;
 
-import com.timcritt.tfg.domain.model.PlatformInvitation;
 import com.timcritt.tfg.domain.model.RoleType;
 import com.timcritt.tfg.infrastructure.persistence.jpa.PlatformInvitationJpaEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
