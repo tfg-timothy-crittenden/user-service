@@ -5,7 +5,7 @@ import com.timcritt.tfg.application.port.outbound.RoleEventPublisherPort;
 import com.timcritt.tfg.application.port.outbound.UserRepositoryPort;
 import com.timcritt.tfg.application.service.UserUseCaseService;
 import com.timcritt.tfg.domain.event.TeacherRoleRevokedEvent;
-import com.timcritt.tfg.domain.model.RoleType;
+import com.timcritt.tfg.domain.model.Role;
 import com.timcritt.tfg.domain.model.aggregate.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,15 +67,15 @@ public class UserServiceAdapter implements UserUseCase {
 
     @Override
     @Transactional
-    public List<User> getAllUsersByRoleType(RoleType role) {
+    public List<User> getAllUsersByRoleType(Role role) {
         return delegate.getAllUsersByRoleType(role);
     }
 
     @Override
     @Transactional
-    public User removeRole(Long userId, RoleType roleType) {
+    public User removeRole(Long userId, Role roleType) {
         User user = delegate.removeRole(userId, roleType);
-        if (roleType == RoleType.TEACHER) {
+        if (roleType == Role.TEACHER) {
             roleEventPublisher.publishTeacherRoleRevoked(new TeacherRoleRevokedEvent(userId));
         }
         return user;

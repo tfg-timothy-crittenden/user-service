@@ -14,22 +14,16 @@ public class UserEntityMapper {
     public static User toDomain(UserJpaEntity entity) {
         if (entity == null) return null;
 
-        Set<Role> roles = entity.getUserRoles() == null
-                ? new HashSet<>()
-                : entity.getUserRoles()
-                .stream()
-                .map(RoleEntityMapper::toDomain)
-                .collect(Collectors.toSet());
-
         return User.rehydrate(
                 entity.getId(),
                 entity.getUsername(),
                 entity.getName(),
                 entity.getSurname(),
                 entity.getEmail(),
-                roles,
+                entity.getUserRoles(),
                 PasswordHash.of(entity.getPasswordHash()),
                 entity.isVerified());
+
     }
 
     public static UserJpaEntity toEntity(User domain) {

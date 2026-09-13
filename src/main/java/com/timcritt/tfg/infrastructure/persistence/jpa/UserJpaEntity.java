@@ -1,5 +1,6 @@
 package com.timcritt.tfg.infrastructure.persistence.jpa;
 
+import com.timcritt.tfg.domain.model.Role;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,14 +31,21 @@ public class UserJpaEntity {
     @Column(name = "verified", nullable = false)
     private boolean verified = false;
 
-    @ManyToMany(mappedBy = "users")
-    private Set<RoleJpaEntity> roles = new HashSet<>();
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
+            name = "user_roles",
+            joinColumns = @JoinColumn(name = "user_id")
+    )
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role")
+    private Set<Role> roles = new HashSet<>();
 
-    public Set<RoleJpaEntity> getUserRoles() {
+
+    public Set<Role> getUserRoles() {
         return roles;
     }
 
-    public void setUserRoles(Set<RoleJpaEntity> roles) {
+    public void setUserRoles(Set<Role> roles) {
         this.roles = (roles == null) ? new HashSet<>() : new HashSet<>(roles);
     }
 }

@@ -1,6 +1,6 @@
 package com.timcritt.tfg.infrastructure.persistence.spring;
 
-import com.timcritt.tfg.domain.model.RoleType;
+import com.timcritt.tfg.domain.model.Role;
 import com.timcritt.tfg.infrastructure.persistence.jpa.PlatformInvitationJpaEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -17,7 +17,7 @@ public interface PlatformInvitationJpaRepository extends JpaRepository<PlatformI
     Optional<PlatformInvitationJpaEntity> findByToken(String Token);
 
     @Query("SELECT p FROM PlatformInvitationJpaEntity p WHERE p.platformInvitationStatus = 'PENDING' AND p.roleType = :roleType")
-    List<PlatformInvitationJpaEntity> findPendingByRoleType(@Param("roleType") RoleType roleType);
+    List<PlatformInvitationJpaEntity> findPendingByRoleType(@Param("roleType") Role roleType);
 
     @Modifying
     @Query("DELETE FROM PlatformInvitationJpaEntity p WHERE p.id IN :ids")

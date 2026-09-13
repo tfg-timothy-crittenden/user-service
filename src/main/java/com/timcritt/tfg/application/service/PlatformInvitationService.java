@@ -34,7 +34,7 @@ public class PlatformInvitationService {
         this.invitationUrlTemplate = invitationUrlTemplate;
     }
 
-    public List<PlatformInvitation> findPendingByRoleType(RoleType roleType) {
+    public List<PlatformInvitation> findPendingByRoleType(Role roleType) {
         return platformInvitationRepository.findPendingByRoleType(roleType);
     }
 
@@ -55,7 +55,7 @@ public class PlatformInvitationService {
         return new BatchDeleteResult(existingIds, notFound);
     }
 
-    public void createAndSendPlatformInvitation(Long createdByUserId, String inviteeEmail, RoleType roleType) {
+    public void createAndSendPlatformInvitation(Long createdByUserId, String inviteeEmail, Role role) {
         if (inviteeEmail == null) throw new IllegalArgumentException("inviteeEmail must not be null");
 
         String normalizedEmail = inviteeEmail.trim().toLowerCase();
@@ -64,17 +64,12 @@ public class PlatformInvitationService {
         Optional<User> userOpt = userRepository.findByEmail(normalizedEmail);
         if (userOpt.isPresent()) {
             User existingUser = userOpt.get();
-            boolean hasRole = existingUser.getRoles().stream()
-                    .anyMatch(r -> r.getRoleType() == roleType);
-            if (hasRole) {
-                throw new AlreadyHasRoleException(normalizedEmail, roleType.name());
 
+            if (existingUser.hasRole(role)) {
+                throw new AlreadyHasRoleException(normalizedEmail, role.name());
             }
 
-            Role newRole = new Role();
-            newRole.setRoleType(roleType);
-
-            existingUser.grantRole(newRole);
+            existingUser.grantRole(role);
             userRepository.save(existingUser);
             return; // role assigned, do not create invitation
         }
@@ -117,7 +112,7 @@ public class PlatformInvitationService {
             existing.setExpiresAt(expiresAt);
             existing.setPlatformInvitationStatus(PlatformInvitationStatus.PENDING);
             existing.setToken(token);
-            existing.setRoleType(roleType);
+            existing.setRoleType(role);
             existing.setConfirmedAt(null);
 
             try {
@@ -142,7 +137,7 @@ public class PlatformInvitationService {
         platformInvitation.setExpiresAt(expiresAt);
         platformInvitation.setPlatformInvitationStatus(PlatformInvitationStatus.PENDING);
         platformInvitation.setToken(token);
-        platformInvitation.setRoleType(roleType);
+        platformInvitation.setRoleType(role);
 
         try {
             platformInvitationRepository.save(platformInvitation);
@@ -215,13 +210,8 @@ public class PlatformInvitationService {
         // encode the password
         PasswordHash passwordHash = PasswordHash.of(passwordEncoder.encode(password));
 
-        // Retrieve the roleType from the invitation
-        RoleType roleType = invitation.getRoleType();
-        Role role = new Role();
-        role.setRoleType(roleType);
-
         // Create the user object and set the attributes
-        User user = User.createFromInvitation(username, name, surname, inviteeEmail, passwordHash, invitation);
+        User user = User.createFromInvitation(username, name, surname, inviteeEmail, passwordHash, invitation.getRoleType());
         userRepository.save(user);
 
         // Mark invitation as accepted and persist to prevent reuse

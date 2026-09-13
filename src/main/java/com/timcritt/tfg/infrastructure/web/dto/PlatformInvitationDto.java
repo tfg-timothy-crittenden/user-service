@@ -1,7 +1,7 @@
 package com.timcritt.tfg.infrastructure.web.dto;
 
 import com.timcritt.tfg.domain.model.aggregate.platformInvitation.PlatformInvitationStatus;
-import com.timcritt.tfg.domain.model.RoleType;
+import com.timcritt.tfg.domain.model.Role;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -20,7 +20,7 @@ public class PlatformInvitationDto {
     private Instant expiresAt;
     private Instant confirmedAt;
     private PlatformInvitationStatus invitationStatus;
-    private RoleType roleType;
+    private Role roleType;
 
 
 }

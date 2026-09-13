@@ -1,6 +1,6 @@
 package com.timcritt.tfg.application.port.outbound;
 
-import com.timcritt.tfg.domain.model.RoleType;
+import com.timcritt.tfg.domain.model.Role;
 import com.timcritt.tfg.domain.model.aggregate.user.User;
 
 import java.util.List;
@@ -13,5 +13,5 @@ public interface UserRepositoryPort {
     Boolean delete(Long id);
     Optional<User> findByUsername(String username);
     Optional<User> findByEmail(String email);
-    List<User> findAllUsersByRoleType(RoleType roleType);
+    List<User> findAllUsersByRole(Role role);
 }

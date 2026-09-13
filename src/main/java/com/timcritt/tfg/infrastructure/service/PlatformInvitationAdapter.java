@@ -10,7 +10,7 @@ import com.timcritt.tfg.infrastructure.security.CustomUserPrincipal;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import com.timcritt.tfg.domain.model.aggregate.platformInvitation.PlatformInvitation;
-import com.timcritt.tfg.domain.model.RoleType;
+import com.timcritt.tfg.domain.model.Role;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +28,7 @@ public class PlatformInvitationAdapter {
         this.delegate = new PlatformInvitationService(passwordEncoder, repository, emailSender, userRepository, invitationUrlTemplate);
     }
 
-    public List<PlatformInvitation> findPendingByRoleType(RoleType roleType) {
+    public List<PlatformInvitation> findPendingByRoleType(Role roleType) {
         return delegate.findPendingByRoleType(roleType);
     }
 
@@ -38,7 +38,7 @@ public class PlatformInvitationAdapter {
     }
 
     @Transactional
-    public void createAndSendPlatformInvitation(String inviteeEmail, RoleType roleType) {
+    public void createAndSendPlatformInvitation(String inviteeEmail, Role roleType) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !(auth.getPrincipal() instanceof CustomUserPrincipal principal)) {
             throw new IllegalStateException("No authenticated user found in security context");

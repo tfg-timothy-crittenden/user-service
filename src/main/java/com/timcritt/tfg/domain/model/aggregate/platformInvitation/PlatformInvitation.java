@@ -2,7 +2,7 @@ package com.timcritt.tfg.domain.model.aggregate.platformInvitation;
 
 import java.time.Instant;
 
-import com.timcritt.tfg.domain.model.RoleType;
+import com.timcritt.tfg.domain.model.Role;
 
 public class PlatformInvitation {
 
@@ -14,13 +14,13 @@ public class PlatformInvitation {
     private Instant confirmedAt;
     private PlatformInvitationStatus invitationStatus;
     private String token;
-    private RoleType roleType;
+    private Role roleType;
 
     public PlatformInvitation() {
 
     }
 
-    public PlatformInvitation(Long id, Long createdByUserId, String email, String inviteeEmail, String token, RoleType roleType, Instant createdAt, Instant expiresAt) {
+    public PlatformInvitation(Long id, Long createdByUserId, String email, String inviteeEmail, String token, Role roleType, Instant createdAt, Instant expiresAt) {
         this.id = id;
         this.createdByUserId = createdByUserId;
         this.inviteeEmail = inviteeEmail;
@@ -92,11 +92,11 @@ public class PlatformInvitation {
         this.token = token;
     }
 
-    public RoleType getRoleType() {
+    public Role getRoleType() {
         return roleType;
     }
 
-    public void setRoleType(RoleType roleType) {
+    public void setRoleType(Role roleType) {
         this.roleType = roleType;
     }
 

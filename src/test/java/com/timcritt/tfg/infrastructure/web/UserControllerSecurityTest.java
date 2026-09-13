@@ -3,7 +3,6 @@ package com.timcritt.tfg.infrastructure.web;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.timcritt.tfg.application.port.inbound.UserUseCase;
 import com.timcritt.tfg.domain.model.Role;
-import com.timcritt.tfg.domain.model.RoleType;
 import com.timcritt.tfg.domain.model.aggregate.user.User;
 import com.timcritt.tfg.infrastructure.security.CustomUserDetailsService;
 import org.junit.jupiter.api.Test;
@@ -59,9 +58,9 @@ class UserControllerSecurityTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void getTeachers_asAdmin_returnsOk() throws Exception {
-        Role teacherRole = new Role(null, RoleType.TEACHER);
+        Role teacherRole = Role.TEACHER;
         User u = User.rehydrate(1L, "t1", "T", "One", "t1@example.com", Set.of(teacherRole), null, true);
-        given(userUseCase.getAllUsersByRoleType(eq(RoleType.TEACHER))).willReturn(List.of(u));
+        given(userUseCase.getAllUsersByRoleType(eq(Role.TEACHER))).willReturn(List.of(u));
 
         mvc.perform(get("/api/users/teachers")).andExpect(status().isOk());
     }
@@ -75,7 +74,7 @@ class UserControllerSecurityTest {
     @Test
     @WithMockUser
     void patchUser_authenticated_returnsOk() throws Exception {
-        Role studentRole = new Role(null, RoleType.STUDENT);
+        Role studentRole = Role.STUDENT;
         User updated = User.rehydrate(2L, "alice", "Alice", "A", "alice@example.com", Set.of(studentRole), null, true);
         given(userUseCase.updateUser(eq(2L), any(), any(), any(), any())).willReturn(updated);
 

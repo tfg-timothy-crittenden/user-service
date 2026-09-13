@@ -2,7 +2,7 @@ package com.timcritt.tfg.infrastructure.persistence.jpa;
 
 
 import com.timcritt.tfg.domain.model.aggregate.platformInvitation.PlatformInvitationStatus;
-import com.timcritt.tfg.domain.model.RoleType;
+import com.timcritt.tfg.domain.model.Role;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -49,14 +49,14 @@ public class PlatformInvitationJpaEntity {
     @Enumerated(EnumType.STRING)
     @Column(name ="role", nullable = false)
     @Getter @Setter
-    private RoleType roleType;
+    private Role roleType;
 
 
     public PlatformInvitationJpaEntity() {
 
     }
 
-    public PlatformInvitationJpaEntity(Long Id, Long createdByUserId, String inviteeEmail, Instant createdAt, Instant expiresAt, Instant confirmedAt, PlatformInvitationStatus platformInvitationStatus, String token, RoleType roleType) {
+    public PlatformInvitationJpaEntity(Long Id, Long createdByUserId, String inviteeEmail, Instant createdAt, Instant expiresAt, Instant confirmedAt, PlatformInvitationStatus platformInvitationStatus, String token, Role roleType) {
         this.id = id;
         this.createdByUserId = createdByUserId;
         this.inviteeEmail = inviteeEmail;

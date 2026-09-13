@@ -3,7 +3,7 @@ package com.timcritt.tfg.infrastructure.web.controller;
 
 import com.timcritt.tfg.application.service.BatchDeleteResult;
 import com.timcritt.tfg.domain.model.aggregate.platformInvitation.PlatformInvitation;
-import com.timcritt.tfg.domain.model.RoleType;
+import com.timcritt.tfg.domain.model.Role;
 import com.timcritt.tfg.infrastructure.service.PlatformInvitationAdapter;
 import com.timcritt.tfg.infrastructure.web.PlatformInvitationDtoMapper;
 import com.timcritt.tfg.infrastructure.web.dto.PlatformInvitationDto;
@@ -27,7 +27,7 @@ public class PlatformInvitationController {
 
     @GetMapping("/pending-teachers")
     public ResponseEntity<List<PlatformInvitationDto>> getPendingTeacherInvitations() {
-        List<PlatformInvitation> pendingTeacherInvitations = platformInvitationAdapter.findPendingByRoleType(RoleType.TEACHER);
+        List<PlatformInvitation> pendingTeacherInvitations = platformInvitationAdapter.findPendingByRoleType(Role.TEACHER);
         List<PlatformInvitationDto> platformInvitationDtos = pendingTeacherInvitations.stream().map(PlatformInvitationDtoMapper::toDto).toList();
         return ResponseEntity.ok(platformInvitationDtos);
     }

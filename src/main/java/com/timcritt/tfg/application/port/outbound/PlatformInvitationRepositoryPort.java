@@ -1,7 +1,7 @@
 package com.timcritt.tfg.application.port.outbound;
 
 import com.timcritt.tfg.domain.model.aggregate.platformInvitation.PlatformInvitation;
-import com.timcritt.tfg.domain.model.RoleType;
+import com.timcritt.tfg.domain.model.Role;
 
 import java.util.List;
 import java.util.Optional;
@@ -12,7 +12,7 @@ public interface PlatformInvitationRepositoryPort {
 
     Optional<PlatformInvitation> findByInvitationId(Long invitationId);
 
-    List<PlatformInvitation> findPendingByRoleType(RoleType roleType);
+    List<PlatformInvitation> findPendingByRoleType(Role roleType);
 
     void save(PlatformInvitation platformInvitation);
 

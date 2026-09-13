@@ -5,7 +5,6 @@ import java.util.Objects;
 import java.util.Set;
 
 import com.timcritt.tfg.domain.model.Role;
-import com.timcritt.tfg.domain.model.RoleType;
 import com.timcritt.tfg.domain.model.aggregate.platformInvitation.PlatformInvitation;
 import org.jspecify.annotations.Nullable;
 
@@ -32,21 +31,17 @@ public class User {
         this.passwordHash = passwordHash;
         this.verified = verified;
     }
-    //################################################### FACTORY METHODS #############################################################################
+    //################################################### FACTORY METHODS ##############################################
     public static User createStudent(String username, String name, String surname, String email, PasswordHash passwordHash) {
 
         Set<Role> roles = new HashSet<>();
-        Role defaultRole = new Role();
-        defaultRole.setRoleType(RoleType.STUDENT);
-        roles.add(defaultRole);
+        roles.add(Role.STUDENT);
         return new User(null, username, name, surname, email, roles, passwordHash, false);
     }
 
-    public static User createFromInvitation(String username, String name, String surname, String email, PasswordHash passwordHash, PlatformInvitation invitation) {
+    public static User createFromInvitation(String username, String name, String surname, String email, PasswordHash passwordHash, Role roleToGrant) {
         Set<Role> roles = new HashSet<>();
-        Role defaultRole = new Role();
-        defaultRole.setRoleType(invitation.getRoleType());
-        roles.add(defaultRole);
+        roles.add(roleToGrant);
         return new User(null, username, name, surname, email, roles, passwordHash, true);
     }
 
@@ -54,7 +49,7 @@ public class User {
         return new User(id, username, name, surname, email, roles, passwordHash, verified);
     }
 
-    //#################################################################################################################################################
+    //######################################################## BUSINESS LOGIC #########################################
 
     public void updateProfile(String name, String surname) {
         this.name = name;
@@ -107,31 +102,19 @@ public class User {
         }
         this.passwordHash = passwordHash;
     }
+    public boolean isVerified() { return verified; }
+
+    //############################################################## GETTERS ###########################################
 
     public @Nullable PasswordHash getPasswordHash() { return passwordHash; }
-
     public Long getId() { return id; }
-
     public String getUsername() { return username; }
-
     public String getName() { return name; }
-
     public String getSurname() { return surname; }
-
     public String getEmail() { return email; }
-
-    public User addRoleType(RoleType roleType) {
-        if (roleType != null) {
-            this.roles.add(new Role(null, roleType));
-        }
-        return this;
-    }
     public Set<Role> getRoles() {
         return Set.copyOf(roles);
     }
-
-    public boolean isVerified() { return verified; }
-
 
     @Override
     public boolean equals(Object o) {

@@ -2,18 +2,14 @@ package com.timcritt.tfg.infrastructure.persistence;
 
 import com.timcritt.tfg.application.port.outbound.UserRepositoryPort;
 import com.timcritt.tfg.domain.model.Role;
-import com.timcritt.tfg.domain.model.RoleType;
 import com.timcritt.tfg.domain.model.aggregate.user.User;
-import com.timcritt.tfg.infrastructure.persistence.jpa.RoleJpaEntity;
 import com.timcritt.tfg.infrastructure.persistence.jpa.UserJpaEntity;
-import com.timcritt.tfg.infrastructure.persistence.spring.RoleJpaRepository;
 import com.timcritt.tfg.infrastructure.persistence.spring.UserJpaRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -25,11 +21,10 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     private static final Logger log = LoggerFactory.getLogger(UserRepositoryAdapter.class);
 
     private final UserJpaRepository jpaRepository;
-    private final RoleJpaRepository roleJpaRepository;
 
-    public UserRepositoryAdapter(UserJpaRepository jpaRepository, RoleJpaRepository roleJpaRepository) {
+
+    public UserRepositoryAdapter(UserJpaRepository jpaRepository) {
         this.jpaRepository = jpaRepository;
-        this.roleJpaRepository = roleJpaRepository;
     }
 
     @Override
@@ -53,6 +48,7 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     @Override
     @Transactional
     public User save(User user) {
+        //TODO: is this still needed after we have refactored and remove RoleType and instead just use Lists of Role enums?
         // If this is an existing user, update the managed entity to avoid creating detached instances
         if (user.getId() != null) {
             Optional<UserJpaEntity> existing = jpaRepository.findById(user.getId());
@@ -65,42 +61,16 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
                 managed.setEmail(user.getEmail());
                 managed.setPasswordHash(user.getPasswordHash().value());
                 managed.setVerified(user.isVerified());
-
-                // snapshot roles before we change anything
-                Set<RoleJpaEntity> previousRoles = new HashSet<>(managed.getUserRoles());
-
-                // resolve the new desired set of roles
-                Set<RoleJpaEntity> resolvedRoles = resolveRoles(user.getRoles());
-                managed.setUserRoles(resolvedRoles);
-
-                // remove user from the owning side of roles that were dropped
-                for (RoleJpaEntity removedRole : previousRoles) {
-                    if (!resolvedRoles.contains(removedRole)) {
-                        removedRole.getUsers().removeIf(u -> managed.getId().equals(u.getId()));
-                    }
-                }
-
-                // add user to the owning side of roles that are still/newly present
-                for (RoleJpaEntity role : resolvedRoles) {
-                    if (!containsUserWithId(role.getUsers(), managed.getId())) {
-                        role.getUsers().add(managed);
-                    }
-                }
+                managed.setRoles(user.getRoles());
 
                 UserJpaEntity saved = jpaRepository.save(managed);
                 return UserEntityMapper.toDomain(saved);
             }
         }
 
+
         // New user path (no existing id / not found): create new entity as before
         UserJpaEntity entity = UserEntityMapper.toEntity(user);
-        Set<RoleJpaEntity> resolvedRoles = resolveRoles(user.getRoles());
-        // attach new entity to roles (owning side)
-        for (RoleJpaEntity role : resolvedRoles) {
-            role.getUsers().add(entity);
-        }
-        entity.setUserRoles(resolvedRoles);
-
         UserJpaEntity saved = jpaRepository.save(entity);
         return UserEntityMapper.toDomain(saved);
     }
@@ -113,8 +83,8 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
 
     @Override
     @Transactional(readOnly = true)
-    public List<User>  findAllUsersByRoleType(RoleType roleType) {
-        List<UserJpaEntity> entities = jpaRepository.findUsersByRoleType(roleType);
+    public List<User>  findAllUsersByRole(Role role) {
+        List<UserJpaEntity> entities = jpaRepository.findUsersByRole(role);
         return entities.stream().map(UserEntityMapper::toDomain).collect(Collectors.toList());
     }
 
@@ -126,23 +96,5 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
         return false;
     }
 
-    private Set<RoleJpaEntity> resolveRoles(Set<Role> roles) {
-        Set<RoleJpaEntity> resolved = new HashSet<>();
-        if (roles == null || roles.isEmpty()) {
-            return resolved;
-        }
 
-        for (Role role : roles) {
-            if (role == null || role.getRoleType() == null) {
-                continue;
-            }
-
-            RoleType roleType = role.getRoleType();
-            RoleJpaEntity managed = roleJpaRepository.findByRoleType(roleType)
-                    .orElseThrow(() -> new IllegalStateException("Missing seeded role: " + roleType));
-            resolved.add(managed);
-        }
-
-        return resolved;
-    }
 }

@@ -1,6 +1,6 @@
 package com.timcritt.tfg.application.port.inbound;
 
-import com.timcritt.tfg.domain.model.RoleType;
+import com.timcritt.tfg.domain.model.Role;
 import com.timcritt.tfg.domain.model.aggregate.user.User;
 
 import java.util.List;
@@ -13,8 +13,8 @@ public interface UserUseCase {
     User getUserByUsername(String username);
     User updateUser(Long id, String username, String name, String surname, String email);
     Boolean deleteUser(Long id);
-    List<User> getAllUsersByRoleType(RoleType role);
-    User removeRole(Long userId, RoleType roleType);
+    List<User> getAllUsersByRoleType(Role role);
+    User removeRole(Long userId, Role roleType);
     // Attempt to find a user by username or email; returns Optional.empty() if not found.
     Optional<User> findByIdentifier(String usernameOrEmail);
 }

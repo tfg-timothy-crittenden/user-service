@@ -27,7 +27,6 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
 
         var authorities = user.getRoles().stream()
-                .map(Role::getRoleType)
                 .map(Enum::name)
                 .map(r -> "ROLE_" + r) // add ROLE_ prefix to satisfy hasRole(...)
                 .map(SimpleGrantedAuthority::new)

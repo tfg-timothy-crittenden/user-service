@@ -3,7 +3,7 @@ package com.timcritt.tfg.infrastructure.persistence;
 
 import com.timcritt.tfg.application.port.outbound.PlatformInvitationRepositoryPort;
 import com.timcritt.tfg.domain.model.aggregate.platformInvitation.PlatformInvitation;
-import com.timcritt.tfg.domain.model.RoleType;
+import com.timcritt.tfg.domain.model.Role;
 import com.timcritt.tfg.infrastructure.persistence.jpa.PlatformInvitationJpaEntity;
 import com.timcritt.tfg.infrastructure.persistence.spring.PlatformInvitationJpaRepository;
 import org.springframework.stereotype.Repository;
@@ -25,7 +25,7 @@ public class PlatformInvitationRepositoryAdapter implements PlatformInvitationRe
     }
 
     @Override
-    public List<PlatformInvitation> findPendingByRoleType(RoleType roleType) {
+    public List<PlatformInvitation> findPendingByRoleType(Role roleType) {
         return this.repository.findPendingByRoleType(roleType).stream().map(PlatformInvitationEntityMapper::toDomain).collect(Collectors.toList());
     }
 

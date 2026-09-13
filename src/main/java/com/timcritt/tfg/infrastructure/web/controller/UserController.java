@@ -1,7 +1,7 @@
 package com.timcritt.tfg.infrastructure.web.controller;
 
 import com.timcritt.tfg.application.port.inbound.UserUseCase;
-import com.timcritt.tfg.domain.model.RoleType;
+import com.timcritt.tfg.domain.model.Role;
 import com.timcritt.tfg.domain.model.aggregate.user.User;
 import com.timcritt.tfg.infrastructure.web.UserDtoMapper;
 import com.timcritt.tfg.infrastructure.web.dto.UserDto;
@@ -42,7 +42,7 @@ public class UserController {
     public List<UserDto> getAllTeachers() {
         log.info("GET /api/users");
 
-        List<User> users = useCase.getAllUsersByRoleType(RoleType.TEACHER);
+        List<User> users = useCase.getAllUsersByRoleType(Role.TEACHER);
         return users.stream().map(UserDtoMapper::toDto).collect(Collectors.toList());
 
     }
@@ -59,7 +59,7 @@ public class UserController {
 
     //Should only be for admins
     @DeleteMapping("/{id}/roles/{roleType}")
-    public ResponseEntity<UserDto> removeRole(@PathVariable Long id, @PathVariable RoleType roleType) {
+    public ResponseEntity<UserDto> removeRole(@PathVariable Long id, @PathVariable Role roleType) {
         log.info("DELETE /api/users/{}/roles/{}", id, roleType);
         return ResponseEntity.ok(UserDtoMapper.toDto(useCase.removeRole(id, roleType)));
     }

@@ -4,8 +4,7 @@ import com.timcritt.tfg.infrastructure.ratelimiting.ResendVerificationRateLimite
 import jakarta.servlet.http.HttpServletRequest;
 import com.timcritt.tfg.application.exception.UserNotFoundException;
 import com.timcritt.tfg.application.port.inbound.UserUseCase;
-import com.timcritt.tfg.domain.model.RoleType;
-import com.timcritt.tfg.infrastructure.security.CustomUserPrincipal;
+import com.timcritt.tfg.domain.model.Role;
 import com.timcritt.tfg.infrastructure.security.JwtTokenService;
 import com.timcritt.tfg.infrastructure.service.PasswordResetAdapter;
 import com.timcritt.tfg.infrastructure.service.PlatformInvitationAdapter;
@@ -23,7 +22,6 @@ import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -198,7 +196,7 @@ public class AuthController {
     public record SignupRequest(@NotBlank String username, @NotBlank String name, @NotBlank String surname, @NotBlank String email, @NotBlank String password) { }
     public record SignupResponse(@NotBlank String username, String message) { }
 
-    public record SendInvitationRequest(@NotBlank String email, @NotNull RoleType roleType) { }
+    public record SendInvitationRequest(@NotBlank String email, @NotNull Role roleType) { }
     public record SignupWithInvitationRequest(@NotBlank String username, @NotBlank String name, @NotBlank String surname, @NotBlank String invitationToken, @NotBlank String password) { }
 
 

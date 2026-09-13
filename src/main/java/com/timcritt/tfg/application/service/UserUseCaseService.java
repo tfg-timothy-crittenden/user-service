@@ -5,7 +5,6 @@ import com.timcritt.tfg.application.exception.UserNotFoundException;
 import com.timcritt.tfg.application.port.inbound.UserUseCase;
 import com.timcritt.tfg.application.port.outbound.UserRepositoryPort;
 import com.timcritt.tfg.domain.model.Role;
-import com.timcritt.tfg.domain.model.RoleType;
 import com.timcritt.tfg.application.exception.UserAlreadyExistsException;
 import com.timcritt.tfg.domain.model.aggregate.user.PasswordHash;
 import com.timcritt.tfg.domain.model.aggregate.user.User;
@@ -74,19 +73,17 @@ public class UserUseCaseService implements UserUseCase {
     }
 
     @Override
-    public List<User> getAllUsersByRoleType(RoleType roleType) {
-        return repository.findAllUsersByRoleType(roleType);
+    public List<User> getAllUsersByRoleType(Role role) {
+        return repository.findAllUsersByRole(role);
     }
 
     @Override
-    public User removeRole(Long userId, RoleType roleType) {
+    public User removeRole(Long userId, Role roleToRemove) {
         User user = repository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId, ""));
 
-        Role roleToRemove = new Role().setRoleType(roleType);
-
         if (!user.hasRole(roleToRemove)) {
-            throw new RoleNotFoundException(userId, roleType.name());
+            throw new RoleNotFoundException(userId, roleToRemove.name());
         }
 
         user.revokeRole(roleToRemove);
