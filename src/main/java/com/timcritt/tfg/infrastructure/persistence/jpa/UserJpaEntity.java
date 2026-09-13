@@ -13,6 +13,7 @@ import java.util.Set;
 
 public class UserJpaEntity {
 
+    @Getter @Setter
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
