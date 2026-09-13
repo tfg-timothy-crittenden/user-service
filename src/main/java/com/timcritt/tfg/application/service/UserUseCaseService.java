@@ -4,6 +4,7 @@ import com.timcritt.tfg.application.exception.RoleNotFoundException;
 import com.timcritt.tfg.application.exception.UserNotFoundException;
 import com.timcritt.tfg.application.port.inbound.UserUseCase;
 import com.timcritt.tfg.application.port.outbound.UserRepositoryPort;
+import com.timcritt.tfg.domain.model.Role;
 import com.timcritt.tfg.domain.model.RoleType;
 import com.timcritt.tfg.application.exception.UserAlreadyExistsException;
 import com.timcritt.tfg.domain.model.aggregate.user.PasswordHash;
@@ -42,12 +43,13 @@ public class UserUseCaseService implements UserUseCase {
 
     @Override
     public User updateUser(Long id, String username, String name, String surname, String email) {
-        User existing = repository.findById(id).orElseThrow(() -> new UserNotFoundException(id, ""));
-        existing.setUsername(username);
-        existing.setName(name);
-        existing.setSurname(surname);
-        existing.setEmail(email);
-        return repository.save(existing);
+        User existingUser = repository.findById(id).orElseThrow(() -> new UserNotFoundException(id, ""));
+
+        existingUser.updateProfile(name, surname);
+        existingUser.updateEmail(email);
+        existingUser.updateUsername(username);
+
+        return repository.save(existingUser);
     }
 
     @Override
@@ -60,14 +62,9 @@ public class UserUseCaseService implements UserUseCase {
             throw new UserAlreadyExistsException(email, "email");
         }
 
-        User user = new User();
-        user.setUsername(username);
-        user.setName(name);
-        user.setSurname(surname);
-        user.setEmail(email);
-        user.changePassword(PasswordHash.of(passwordHash));
-        user.addRoleType(RoleType.STUDENT);
-        return repository.save(user);
+        User newUser = User.createStudent(username, name, surname, email, PasswordHash.of(passwordHash));
+
+        return repository.save(newUser);
     }
 
     @Override
@@ -85,10 +82,14 @@ public class UserUseCaseService implements UserUseCase {
     public User removeRole(Long userId, RoleType roleType) {
         User user = repository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId, ""));
-        boolean had = user.getRoles().removeIf(r -> r.getRoleType() == roleType);
-        if (!had) {
+
+        Role roleToRemove = new Role().setRoleType(roleType);
+
+        if (!user.hasRole(roleToRemove)) {
             throw new RoleNotFoundException(userId, roleType.name());
         }
+
+        user.revokeRole(roleToRemove);
         return repository.save(user);
     }
 }

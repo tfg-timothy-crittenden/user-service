@@ -22,7 +22,7 @@ public class User {
 
     public User() {}
 
-    public User(Long id, String username, String name, String surname, String email, Set<Role> roles, PasswordHash passwordHash) {
+    private User(Long id, String username, String name, String surname, String email, Set<Role> roles, PasswordHash passwordHash, boolean verified) {
         this.id = id;
         this.username = username;
         this.name = name;
@@ -30,6 +30,7 @@ public class User {
         this.email = email;
         this.roles = (roles == null) ? new HashSet<>() : new HashSet<>(roles);
         this.passwordHash = passwordHash;
+        this.verified = verified;
     }
     //################################################### FACTORY METHODS #############################################################################
     public static User createStudent(String username, String name, String surname, String email, PasswordHash passwordHash) {
@@ -38,7 +39,7 @@ public class User {
         Role defaultRole = new Role();
         defaultRole.setRoleType(RoleType.STUDENT);
         roles.add(defaultRole);
-        return new User(null, username, name, surname, email, roles, passwordHash);
+        return new User(null, username, name, surname, email, roles, passwordHash, false);
     }
 
     public static User createFromInvitation(String username, String name, String surname, String email, PasswordHash passwordHash, PlatformInvitation invitation) {
@@ -46,14 +47,31 @@ public class User {
         Role defaultRole = new Role();
         defaultRole.setRoleType(invitation.getRoleType());
         roles.add(defaultRole);
-        return new User(null, username, name, surname, email, roles, passwordHash);
+        return new User(null, username, name, surname, email, roles, passwordHash, true);
     }
 
-    public static User rehydrate(Long id, String username, String name, String surname, String email, Set<Role> roles, PasswordHash passwordHash) {
-        return new User(id, username, name, surname, email, roles, passwordHash);
+    public static User rehydrate(Long id, String username, String name, String surname, String email, Set<Role> roles, PasswordHash passwordHash, boolean verified) {
+        return new User(id, username, name, surname, email, roles, passwordHash, verified);
     }
 
     //#################################################################################################################################################
+
+    public void updateProfile(String name, String surname) {
+        this.name = name;
+        this.surname = surname;
+    }
+
+    public void updateUsername(String username) {
+        this.username = username;
+    }
+
+    public void updateEmail(String email) {
+        this.email = email;
+    }
+
+    public void confirmEmail() {
+        this.verified = true;
+    }
 
     public void grantRole(Role role) {
         if(role == null ) {
@@ -76,7 +94,7 @@ public class User {
         roles.remove(role);
     }
 
-    public boolean checkRole(Role role) {
+    public boolean hasRole(Role role) {
         if (role == null) {
             throw new NullPointerException("role cannot be null");
         }
@@ -93,17 +111,14 @@ public class User {
     public @Nullable PasswordHash getPasswordHash() { return passwordHash; }
 
     public Long getId() { return id; }
-    public User setId(Long id) { this.id = id; return this; }
+
     public String getUsername() { return username; }
-    public User setUsername(String username) { this.username = username; return this; }
+
     public String getName() { return name; }
-    public User setName(String name) { this.name = name; return this; }
+
     public String getSurname() { return surname; }
-    public User setSurname(String surname) { this.surname = surname; return this; }
+
     public String getEmail() { return email; }
-    public User setEmail(String email) { this.email = email; return this; }
-    public Set<Role> getRoles() { return roles; }
-    public void setRoles(Set<Role> roles) { this.roles = (roles == null) ? new HashSet<>() : new HashSet<>(roles); }
 
     public User addRoleType(RoleType roleType) {
         if (roleType != null) {
@@ -111,9 +126,12 @@ public class User {
         }
         return this;
     }
+    public Set<Role> getRoles() {
+        return Set.copyOf(roles);
+    }
 
     public boolean isVerified() { return verified; }
-    public void setVerified(boolean verified) { this.verified = verified; }
+
 
     @Override
     public boolean equals(Object o) {

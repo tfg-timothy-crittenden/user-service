@@ -73,9 +73,8 @@ public class PlatformInvitationService {
 
             Role newRole = new Role();
             newRole.setRoleType(roleType);
-            var roles = existingUser.getRoles();
-            roles.add(newRole);
-            existingUser.setRoles(roles);
+
+            existingUser.grantRole(newRole);
             userRepository.save(existingUser);
             return; // role assigned, do not create invitation
         }
@@ -216,22 +215,13 @@ public class PlatformInvitationService {
         // encode the password
         PasswordHash passwordHash = PasswordHash.of(passwordEncoder.encode(password));
 
-        // Retrieve the roleType from the invitation and create role set
+        // Retrieve the roleType from the invitation
         RoleType roleType = invitation.getRoleType();
         Role role = new Role();
         role.setRoleType(roleType);
-        Set<Role> roles = new java.util.HashSet<>(Set.of(role));
 
         // Create the user object and set the attributes
-        User user = new User();
-        user.setUsername(username);
-        user.setName(name);
-        user.setSurname(surname);
-        user.setEmail(inviteeEmail);
-        user.setVerified(true);
-        user.setRoles(roles);
-        user.changePassword(passwordHash);
-
+        User user = User.createFromInvitation(username, name, surname, inviteeEmail, passwordHash, invitation);
         userRepository.save(user);
 
         // Mark invitation as accepted and persist to prevent reuse

@@ -21,17 +21,15 @@ public class UserEntityMapper {
                 .map(RoleEntityMapper::toDomain)
                 .collect(Collectors.toSet());
 
-        User user = new User(
+        return User.rehydrate(
                 entity.getId(),
                 entity.getUsername(),
                 entity.getName(),
                 entity.getSurname(),
                 entity.getEmail(),
                 roles,
-                PasswordHash.of(entity.getPasswordHash())
-        );
-        user.setVerified(entity.isVerified());
-        return user;
+                PasswordHash.of(entity.getPasswordHash()),
+                entity.isVerified());
     }
 
     public static UserJpaEntity toEntity(User domain) {

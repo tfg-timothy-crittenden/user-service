@@ -75,13 +75,13 @@ public class EmailVerificationService {
         if (ev.getUserId() != null) {
             User user = userRepository.findById(ev.getUserId()).orElse(null);
             if (user != null && !user.isVerified()) {
-                user.setVerified(true);
+                user.confirmEmail();
                 userRepository.save(user);
             }
         } else if (ev.getUserEmail() != null) {
             userRepository.findByEmail(ev.getUserEmail()).ifPresent(u -> {
                 if (!u.isVerified()) {
-                    u.setVerified(true);
+                    u.confirmEmail();
                     userRepository.save(u);
                 }
             });

@@ -60,7 +60,7 @@ class UserControllerSecurityTest {
     @WithMockUser(roles = "ADMIN")
     void getTeachers_asAdmin_returnsOk() throws Exception {
         Role teacherRole = new Role(null, RoleType.TEACHER);
-        User u = new User(1L, "t1", "T", "One", "t1@example.com", Set.of(teacherRole), null);
+        User u = User.rehydrate(1L, "t1", "T", "One", "t1@example.com", Set.of(teacherRole), null, true);
         given(userUseCase.getAllUsersByRoleType(eq(RoleType.TEACHER))).willReturn(List.of(u));
 
         mvc.perform(get("/api/users/teachers")).andExpect(status().isOk());
@@ -76,7 +76,7 @@ class UserControllerSecurityTest {
     @WithMockUser
     void patchUser_authenticated_returnsOk() throws Exception {
         Role studentRole = new Role(null, RoleType.STUDENT);
-        User updated = new User(2L, "alice", "Alice", "A", "alice@example.com", Set.of(studentRole), null);
+        User updated = User.rehydrate(2L, "alice", "Alice", "A", "alice@example.com", Set.of(studentRole), null, true);
         given(userUseCase.updateUser(eq(2L), any(), any(), any(), any())).willReturn(updated);
 
         // minimal payload

@@ -27,22 +27,6 @@ public final class UserDtoMapper {
         return dto;
     }
 
-    public static User toDomain(UserDto dto) {
-        if (dto == null) return null;
-
-        User user = new User();
-        user.setId(dto.getId());
-        user.setUsername(dto.getUsername());
-        user.setName(dto.getName());
-        user.setSurname(dto.getSurname());
-        user.setEmail(dto.getEmail());
-        user.setRoles(toDomainRoles(dto.getRoles()));
-        if (dto.isVerified() != null) {
-            user.setVerified(dto.isVerified());
-        }
-        return user;
-    }
-
     private static Set<String> toRoleNames(Set<Role> roles) {
         Set<String> out = new HashSet<>();
         if (roles == null) return out;
@@ -54,16 +38,4 @@ public final class UserDtoMapper {
         return out;
     }
 
-    private static Set<Role> toDomainRoles(Set<String> roleNames) {
-        Set<Role> out = new HashSet<>();
-        if (roleNames == null) return out;
-
-        for (String roleName : roleNames) {
-            if (roleName == null || roleName.isBlank()) continue;
-            Role role = new Role();
-            role.setRoleType(RoleType.valueOf(roleName));
-            out.add(role);
-        }
-        return out;
-    }
 }
