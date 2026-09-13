@@ -65,4 +65,5 @@ jobs:
           -Dsonar.projectKey=toefl-speaking-service
           -Dsonar.organization=tfg-timothy-crittenden
           -Dsonar.host.url=https://sonarcloud.io
+          -Dsonar.scanner.skipJreProvisioning=true
           -Dsonar.java.binaries=target/classes
