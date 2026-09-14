@@ -5,13 +5,12 @@ import java.time.Instant;
 
 public class PasswordResetToken {
 
-    private Long id;
-    private Long userId;
-    private String tokenHash;
-    private Instant createdAt;
-    private Instant expiresAt;
+    private final Long id;
+    private final Long userId;
+    private final String tokenHash;
+    private final Instant createdAt;
+    private final Instant expiresAt;
     private boolean valid = true;
-
 
     private PasswordResetToken(Long id, Long userId, String tokenHash, Instant createdAt, Instant expiresAt, boolean valid) {
 
@@ -20,13 +19,9 @@ public class PasswordResetToken {
         }
 
         requireNonBlank(tokenHash, "tokenHash");
+        requireNotNull(createdAt, "createdAt cannot be null");
+        requireNotNull(expiresAt, "expiresAt cannot be null");
 
-        if(createdAt == null) {
-            throw new IllegalArgumentException("createdAt cannot be null");
-        }
-        if (expiresAt == null) {
-            throw new IllegalArgumentException("expiresAt cannot be null");
-        }
         if (!expiresAt.isAfter(createdAt)) {
             throw new IllegalArgumentException("expiresAt must be after createdAt");
         }
@@ -41,6 +36,8 @@ public class PasswordResetToken {
 
     //############################################ Static Factory Methods #############################################
     public static PasswordResetToken create(Long userId, String tokenHash, Instant createdAt) {
+
+        requireNotNull(createdAt, "createdAt cannot be null");
 
         Instant expiresAt = createdAt.plus(Duration.ofHours(1));
         return new PasswordResetToken(null, userId, tokenHash, createdAt, expiresAt, true);
@@ -72,12 +69,11 @@ public class PasswordResetToken {
 
     //Pass the time in to facilitate testing and remove the dependency. Current time should not belong to this class.
     public boolean isExpiredAt(Instant now) {
-        if (now == null) {
-            throw new IllegalArgumentException("now cannot be null");
-        }
+        requireNotNull(now, "now cannot be null");
 
         return !now.isBefore(expiresAt);
     }
+
     public void invalidate() {
         this.valid = false;
     }
@@ -91,6 +87,12 @@ public class PasswordResetToken {
             throw new IllegalArgumentException(
                     fieldName + " cannot be blank"
             );
+        }
+    }
+
+    private static void requireNotNull(Object object, String fieldName) {
+        if (object == null) {
+            throw new IllegalArgumentException(fieldName + " cannot be null");
         }
     }
 
