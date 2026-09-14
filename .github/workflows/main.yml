@@ -1,10 +1,13 @@
-name: Publish Docker image
+name: Promote Docker image
 
 on:
   workflow_dispatch:
     inputs:
-      image_tag:
-        description: "Tag to publish"
+      source_sha:
+        description: "Commit SHA of the image to promote"
+        required: true
+      target_tag:
+        description: "Tag to assign"
         required: true
         default: "latest"
 
@@ -13,13 +16,10 @@ permissions:
   packages: write
 
 jobs:
-  publish:
+  promote:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out source
-        uses: actions/checkout@v4
-
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -27,9 +27,16 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: true
-          tags: ghcr.io/${{ github.repository }}:${{ inputs.image_tag }}
+      - name: Pull verified image
+        run: |
+          docker pull ghcr.io/${{ github.repository }}:${{ inputs.source_sha }}
+
+      - name: Tag image
+        run: |
+          docker tag \
+            ghcr.io/${{ github.repository }}:${{ inputs.source_sha }} \
+            ghcr.io/${{ github.repository }}:${{ inputs.target_tag }}
+
+      - name: Push promoted tag
+        run: |
+          docker push ghcr.io/${{ github.repository }}:${{ inputs.target_tag }}
