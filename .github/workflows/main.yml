@@ -1,11 +1,8 @@
-name: Promote Docker image
+name: Promote Candidate Docker image
 
 on:
   workflow_dispatch:
     inputs:
-      source_sha:
-        description: "Commit SHA of the image to promote"
-        required: true
       target_tag:
         description: "Tag to assign"
         required: true
@@ -27,16 +24,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Pull verified image
+      - name: Pull candidate image
         run: |
-          docker pull ghcr.io/${{ github.repository }}:${{ inputs.source_sha }}
+          docker pull ghcr.io/${{ github.repository }}:candidate
 
-      - name: Tag image
+      - name: Promote image
         run: |
           docker tag \
-            ghcr.io/${{ github.repository }}:${{ inputs.source_sha }} \
+            ghcr.io/${{ github.repository }}:candidate \
             ghcr.io/${{ github.repository }}:${{ inputs.target_tag }}
 
-      - name: Push promoted tag
-        run: |
-          docker push ghcr.io/${{ github.repository }}:${{ inputs.target_tag }}
+          docker push \
+            ghcr.io/${{ github.repository }}:${{ inputs.target_tag }}
