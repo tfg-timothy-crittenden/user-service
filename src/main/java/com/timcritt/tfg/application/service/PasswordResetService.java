@@ -13,6 +13,7 @@ import com.timcritt.tfg.domain.model.aggregate.passwordReset.PasswordResetToken;
 import com.timcritt.tfg.domain.model.aggregate.user.PasswordHash;
 import com.timcritt.tfg.domain.model.aggregate.user.User;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -75,7 +76,7 @@ public class PasswordResetService {
         String tokenHash = tokenHasher.encode(token);
 
         Instant createdAt = Instant.now();
-        Instant expiresAt = createdAt.plusSeconds(60 * 60 * 24);
+        Instant expiresAt = createdAt.plus(Duration.ofDays(1));
 
         PasswordResetToken passwordResetToken =
                 new PasswordResetToken(
