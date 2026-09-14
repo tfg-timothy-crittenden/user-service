@@ -4,11 +4,9 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-import com.timcritt.tfg.application.exception.RoleNotFoundException;
 import com.timcritt.tfg.domain.exception.MustNotRemoveLastUserRoleException;
 import com.timcritt.tfg.domain.exception.UserDoesNotHaveRoleException;
 import com.timcritt.tfg.domain.model.Role;
-import org.jspecify.annotations.Nullable;
 
 public class User {
 
@@ -32,7 +30,7 @@ public class User {
             throw new NullPointerException("passwordHash cannot be null");
         }
 
-        if (roles == null || roles.isEmpty() || roles.contains(null)) {
+        if (roles == null || roles.isEmpty() || roles.stream().anyMatch(Objects::isNull)) {
             throw new IllegalArgumentException(
                     "user must have at least one valid role");
         }
