@@ -1,5 +1,7 @@
 package com.timcritt.tfg.domain.model.aggregate.passwordReset;
 
+import com.timcritt.tfg.domain.exception.InvalidPasswordResetTokenException;
+
 import java.time.Duration;
 import java.time.Instant;
 
@@ -35,7 +37,6 @@ public class PasswordResetToken {
     public static PasswordResetToken create(Long userId, String tokenHash, Instant createdAt) {
 
         requireNotNull(createdAt, "createdAt");
-
         Instant expiresAt = createdAt.plus(Duration.ofHours(1));
         return new PasswordResetToken(null, userId, tokenHash, createdAt, expiresAt, true);
     }
@@ -67,8 +68,20 @@ public class PasswordResetToken {
     //Pass the time in to facilitate testing and remove the dependency. Current time should not belong to this class.
     public boolean isExpiredAt(Instant now) {
         requireNotNull(now, "now");
-
         return !now.isBefore(expiresAt);
+    }
+
+    public boolean isUsableAt(Instant now) {
+        requireNotNull(now, "now");
+        return valid && !isExpiredAt(now);
+    }
+
+    public void consumeAt(Instant now) {
+        if (!isUsableAt(now)) {
+            throw new InvalidPasswordResetTokenException();
+        }
+
+        this.valid = false;
     }
 
     public void invalidate() {
