@@ -1,5 +1,6 @@
 package com.timcritt.tfg.domain.model.aggregate.passwordReset;
 
+import java.time.Duration;
 import java.time.Instant;
 
 public class PasswordResetToken {
@@ -9,17 +10,24 @@ public class PasswordResetToken {
     private String tokenHash;
     private Instant createdAt;
     private Instant expiresAt;
-    private boolean valid = true; // NEW: tokens are valid by default
+    private boolean valid = true;
 
-    public PasswordResetToken() {
-    }
 
-    // constructor: id, userId, tokenHash, createdAt, expiresAt, valid
-    public PasswordResetToken(Long id, Long userId, String tokenHash, Instant createdAt, Instant expiresAt, boolean valid) {
+    private PasswordResetToken(Long id, Long userId, String tokenHash, Instant createdAt, Instant expiresAt, boolean valid) {
+
+        if(userId == null) {
+            throw new IllegalArgumentException("userId cannot be null");
+        }
+
+        requireNonBlank(tokenHash, "tokenHash");
+
+        if(createdAt == null) {
+            throw new IllegalArgumentException("createdAt cannot be null");
+        }
         if (expiresAt == null) {
             throw new IllegalArgumentException("expiresAt cannot be null");
         }
-        if (createdAt != null && !expiresAt.isAfter(createdAt)) {
+        if (!expiresAt.isAfter(createdAt)) {
             throw new IllegalArgumentException("expiresAt must be after createdAt");
         }
 
@@ -31,49 +39,53 @@ public class PasswordResetToken {
         this.valid = valid;
     }
 
+    //############################################ Static Factory Methods #############################################
+    public static PasswordResetToken create(Long userId, String tokenHash) {
+        Instant createdAt = Instant.now();
+        Instant expiresAt = Instant.now().plus(Duration.ofHours(1));
+        return new PasswordResetToken(null, userId, tokenHash, createdAt, expiresAt, true);
+    }
+
+    public static PasswordResetToken rehydrate(Long id, Long userId, String tokenHash, Instant createdAt, Instant expiresAt, boolean valid) {
+        return new PasswordResetToken(id, userId, tokenHash, createdAt, expiresAt, valid);
+    }
+
+    //############################################ Generic Getters ##################################################
     public Long getId() {
         return id;
-    }
-    public void setId(Long id) {
-        this.id = id;
     }
     public Long getUserId() {
         return userId;
     }
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
     public String getTokenHash() {
         return tokenHash;
-    }
-    public void setTokenHash(String tokenHash) {
-        this.tokenHash = tokenHash;
     }
     public Instant getCreatedAt() {
         return createdAt;
     }
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
-    }
     public Instant getExpiresAt() {
         return expiresAt;
-    }
-    public void setExpiresAt(Instant expiresAt) {
-        this.expiresAt = expiresAt;
     }
     public boolean isValid() {
         return valid;
     }
-    public void setValid(boolean valid) {
-        this.valid = valid;
-    }
-
     public boolean isExpired() {
         return expiresAt != null && expiresAt.isBefore(Instant.now());
     }
-
     public void invalidate() {
         this.valid = false;
+    }
+
+    //########################################## Helpers #########################################################
+    private static void requireNonBlank(
+            String value,
+            String fieldName
+    ) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(
+                    fieldName + " cannot be blank"
+            );
+        }
     }
 
 }

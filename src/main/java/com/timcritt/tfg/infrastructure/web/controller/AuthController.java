@@ -128,7 +128,6 @@ public class AuthController {
 
     @GetMapping("/confirm-email")
     public ResponseEntity<?> confirmEmail(@RequestParam("token") String token) {
-        log.info("GET /api/auth/confirm-email token={}", token);
 
         try {
             emailVerificationFacade.confirmToken(token);

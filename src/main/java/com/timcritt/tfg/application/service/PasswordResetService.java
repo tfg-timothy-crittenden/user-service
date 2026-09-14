@@ -75,18 +75,7 @@ public class PasswordResetService {
         // Persist only its hash.
         String tokenHash = tokenHasher.encode(token);
 
-        Instant createdAt = Instant.now();
-        Instant expiresAt = createdAt.plus(Duration.ofDays(1));
-
-        PasswordResetToken passwordResetToken =
-                new PasswordResetToken(
-                        null,
-                        user.getId(),
-                        tokenHash,
-                        createdAt,
-                        expiresAt,
-                        true
-                );
+        PasswordResetToken passwordResetToken = PasswordResetToken.create(user.getId(), tokenHash);
 
         passwordResetTokenRepository.save(passwordResetToken);
 

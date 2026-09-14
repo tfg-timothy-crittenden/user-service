@@ -9,14 +9,13 @@ public class PasswordResetTokenRepositoryMapper {
     public static PasswordResetToken toDomain(PasswordResetTokenJpaEntity entity) {
         if (entity == null) return null;
 
-        PasswordResetToken domain = new PasswordResetToken();
-        domain.setId(entity.getId());
-        domain.setUserId(entity.getUser() != null ? entity.getUser().getId() : null);
-        domain.setTokenHash(entity.getTokenHash());
-        domain.setCreatedAt(entity.getCreatedAt());
-        domain.setExpiresAt(entity.getExpiresAt());
-        domain.setValid(entity.isValid()); // NEW
-        return domain;
+        return PasswordResetToken.rehydrate(entity.getId(),
+                                        entity.getUser() != null ? entity.getUser().getId() : null,
+                                        entity.getTokenHash(),
+                                        entity.getCreatedAt(),
+                                        entity.getExpiresAt(),
+                                        entity.isValid()
+        );
     }
 
     public static PasswordResetTokenJpaEntity toEntity(PasswordResetToken domain) {
