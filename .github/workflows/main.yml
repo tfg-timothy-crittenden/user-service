@@ -29,16 +29,18 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Pull candidate image
+        env:
+          IMAGE_NAME: ghcr.io/${{ github.repository }}
         run: |
-          docker pull "ghcr.io/${{ github.repository }}:candidate"
+          docker pull "${IMAGE_NAME}:candidate"
 
       - name: Promote image
         env:
+          IMAGE_NAME: ghcr.io/${{ github.repository }}
           TARGET_TAG: ${{ inputs.target_tag }}
         run: |
           docker tag \
-            "ghcr.io/${{ github.repository }}:candidate" \
-            "ghcr.io/${{ github.repository }}:${TARGET_TAG}"
+            "${IMAGE_NAME}:candidate" \
+            "${IMAGE_NAME}:${TARGET_TAG}"
 
-          docker push \
-            "ghcr.io/${{ github.repository }}:${TARGET_TAG}"
+          docker push "${IMAGE_NAME}:${TARGET_TAG}"
