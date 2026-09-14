@@ -27,7 +27,7 @@ public class PlatformInvitationController {
 
     @GetMapping("/pending-teachers")
     public ResponseEntity<List<PlatformInvitationDto>> getPendingTeacherInvitations() {
-        List<PlatformInvitation> pendingTeacherInvitations = platformInvitationAdapter.findPendingByRoleType(Role.TEACHER);
+        List<PlatformInvitation> pendingTeacherInvitations = platformInvitationAdapter.findPendingByRole(Role.TEACHER);
         List<PlatformInvitationDto> platformInvitationDtos = pendingTeacherInvitations.stream().map(PlatformInvitationDtoMapper::toDto).toList();
         return ResponseEntity.ok(platformInvitationDtos);
     }

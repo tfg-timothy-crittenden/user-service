@@ -89,13 +89,4 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
         return entities.stream().map(UserEntityMapper::toDomain).collect(Collectors.toList());
     }
 
-    private boolean containsUserWithId(Set<UserJpaEntity> set, Long id) {
-        if (id == null) return false;
-        for (UserJpaEntity u : set) {
-            if (u != null && u.getId() != null && u.getId().equals(id)) return true;
-        }
-        return false;
-    }
-
-
 }

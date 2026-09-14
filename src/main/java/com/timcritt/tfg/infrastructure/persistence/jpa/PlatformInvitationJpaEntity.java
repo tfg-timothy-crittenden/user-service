@@ -49,14 +49,14 @@ public class PlatformInvitationJpaEntity {
     @Enumerated(EnumType.STRING)
     @Column(name ="role", nullable = false)
     @Getter @Setter
-    private Role roleType;
+    private Role role;
 
 
     public PlatformInvitationJpaEntity() {
 
     }
 
-    public PlatformInvitationJpaEntity(Long Id, Long createdByUserId, String inviteeEmail, Instant createdAt, Instant expiresAt, Instant confirmedAt, PlatformInvitationStatus platformInvitationStatus, String token, Role roleType) {
+    public PlatformInvitationJpaEntity(Long Id, Long createdByUserId, String inviteeEmail, Instant createdAt, Instant expiresAt, Instant confirmedAt, PlatformInvitationStatus platformInvitationStatus, String token, Role role) {
         this.id = id;
         this.createdByUserId = createdByUserId;
         this.inviteeEmail = inviteeEmail;
@@ -65,7 +65,7 @@ public class PlatformInvitationJpaEntity {
         this.confirmedAt = confirmedAt;
         this.platformInvitationStatus = platformInvitationStatus;
         this.token = token;
-        this.roleType = roleType;
+        this.role = role;
 
     }
 

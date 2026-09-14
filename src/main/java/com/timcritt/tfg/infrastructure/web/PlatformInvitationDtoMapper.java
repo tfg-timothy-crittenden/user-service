@@ -21,7 +21,7 @@ public class PlatformInvitationDtoMapper {
         dto.setExpiresAt(d.getExpiresAt());
         dto.setConfirmedAt(d.getConfirmedAt());
         dto.setInvitationStatus(d.getPlatformInvitationStatus());
-        dto.setRoleType(d.getRoleType());
+        dto.setRole(d.getRole());
         return dto;
     }
 

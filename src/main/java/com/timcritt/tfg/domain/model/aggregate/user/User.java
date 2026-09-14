@@ -5,7 +5,6 @@ import java.util.Objects;
 import java.util.Set;
 
 import com.timcritt.tfg.domain.model.Role;
-import com.timcritt.tfg.domain.model.aggregate.platformInvitation.PlatformInvitation;
 import org.jspecify.annotations.Nullable;
 
 public class User {
@@ -18,8 +17,6 @@ public class User {
     private PasswordHash passwordHash;
     private Set<Role> roles = new HashSet<>();
     private boolean verified = false;
-
-    public User() {}
 
     private User(Long id, String username, String name, String surname, String email, Set<Role> roles, PasswordHash passwordHash, boolean verified) {
         this.id = id;
@@ -60,8 +57,13 @@ public class User {
         this.username = username;
     }
 
-    public void updateEmail(String email) {
-        this.email = email;
+    public void changeEmail(String newEmail) {
+        if (Objects.equals(this.email, newEmail)) {
+            return;
+        }
+
+        this.email = newEmail;
+        this.verified = false;
     }
 
     public void confirmEmail() {
@@ -104,7 +106,7 @@ public class User {
     }
     public boolean isVerified() { return verified; }
 
-    //############################################################## GETTERS ###########################################
+    //######################################## GETTERS #############################################################
 
     public @Nullable PasswordHash getPasswordHash() { return passwordHash; }
     public Long getId() { return id; }
@@ -112,6 +114,8 @@ public class User {
     public String getName() { return name; }
     public String getSurname() { return surname; }
     public String getEmail() { return email; }
+
+    //Return an immutable copy to prevent bypassing business logic by direct mutation of returned collection
     public Set<Role> getRoles() {
         return Set.copyOf(roles);
     }
@@ -120,17 +124,16 @@ public class User {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
+
         User user = (User) o;
-        return Objects.equals(id, user.id)
-                && Objects.equals(username, user.username)
-                && Objects.equals(name, user.name)
-                && Objects.equals(surname, user.surname)
-                && Objects.equals(email, user.email);
+        //Only compare identity, as this is stable when not null
+        return id != null && id.equals(user.id);
     }
 
     @Override
-    public int hashCode() { return Objects.hash(id, username, name, surname, email); }
-
-
+    public int hashCode() {
+        //Hash should be stable, so use class type, not ID, as ID can be null.
+        return getClass().hashCode();
+    }
 
 }

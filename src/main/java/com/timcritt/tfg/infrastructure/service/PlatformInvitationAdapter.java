@@ -28,8 +28,8 @@ public class PlatformInvitationAdapter {
         this.delegate = new PlatformInvitationService(passwordEncoder, repository, emailSender, userRepository, invitationUrlTemplate);
     }
 
-    public List<PlatformInvitation> findPendingByRoleType(Role roleType) {
-        return delegate.findPendingByRoleType(roleType);
+    public List<PlatformInvitation> findPendingByRole(Role role) {
+        return delegate.findPendingByRole(role);
     }
 
     @Transactional
@@ -38,12 +38,12 @@ public class PlatformInvitationAdapter {
     }
 
     @Transactional
-    public void createAndSendPlatformInvitation(String inviteeEmail, Role roleType) {
+    public void createAndSendPlatformInvitation(String inviteeEmail, Role role) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !(auth.getPrincipal() instanceof CustomUserPrincipal principal)) {
             throw new IllegalStateException("No authenticated user found in security context");
         }
-        delegate.createAndSendPlatformInvitation(principal.getId(), inviteeEmail, roleType);
+        delegate.createAndSendPlatformInvitation(principal.getId(), inviteeEmail, role);
     }
 
     @Transactional

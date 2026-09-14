@@ -67,15 +67,15 @@ public class UserServiceAdapter implements UserUseCase {
 
     @Override
     @Transactional
-    public List<User> getAllUsersByRoleType(Role role) {
-        return delegate.getAllUsersByRoleType(role);
+    public List<User> getAllUsersByRole(Role role) {
+        return delegate.getAllUsersByRole(role);
     }
 
     @Override
     @Transactional
-    public User removeRole(Long userId, Role roleType) {
-        User user = delegate.removeRole(userId, roleType);
-        if (roleType == Role.TEACHER) {
+    public User removeRole(Long userId, Role role) {
+        User user = delegate.removeRole(userId, role);
+        if (role == Role.TEACHER) {
             roleEventPublisher.publishTeacherRoleRevoked(new TeacherRoleRevokedEvent(userId));
         }
         return user;

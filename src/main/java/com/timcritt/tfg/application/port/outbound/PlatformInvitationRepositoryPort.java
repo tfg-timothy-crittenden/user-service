@@ -12,7 +12,7 @@ public interface PlatformInvitationRepositoryPort {
 
     Optional<PlatformInvitation> findByInvitationId(Long invitationId);
 
-    List<PlatformInvitation> findPendingByRoleType(Role roleType);
+    List<PlatformInvitation> findPendingByRole(Role role);
 
     void save(PlatformInvitation platformInvitation);
 

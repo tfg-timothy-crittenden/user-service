@@ -15,7 +15,7 @@ public class PlatformInvitationEntityMapper {
         domain.setConfirmedAt(jpaEntity.getConfirmedAt());
         domain.setPlatformInvitationStatus(jpaEntity.getPlatformInvitationStatus());
         domain.setToken(jpaEntity.getToken());
-        domain.setRoleType(jpaEntity.getRoleType());
+        domain.setRole(jpaEntity.getRole());
 
         return domain;
     }
@@ -30,7 +30,7 @@ public class PlatformInvitationEntityMapper {
         entity.setConfirmedAt(domain.getConfirmedAt());
         entity.setPlatformInvitationStatus(domain.getPlatformInvitationStatus());
         entity.setToken(domain.getToken());
-        entity.setRoleType(domain.getRoleType());
+        entity.setRole(domain.getRole());
 
         return entity;
 

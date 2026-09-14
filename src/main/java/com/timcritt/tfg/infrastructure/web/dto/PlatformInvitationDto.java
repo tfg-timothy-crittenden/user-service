@@ -20,7 +20,7 @@ public class PlatformInvitationDto {
     private Instant expiresAt;
     private Instant confirmedAt;
     private PlatformInvitationStatus invitationStatus;
-    private Role roleType;
+    private Role role;
 
 
 }

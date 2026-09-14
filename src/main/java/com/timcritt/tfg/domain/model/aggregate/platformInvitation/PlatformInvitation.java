@@ -14,18 +14,18 @@ public class PlatformInvitation {
     private Instant confirmedAt;
     private PlatformInvitationStatus invitationStatus;
     private String token;
-    private Role roleType;
+    private Role role;
 
     public PlatformInvitation() {
 
     }
 
-    public PlatformInvitation(Long id, Long createdByUserId, String email, String inviteeEmail, String token, Role roleType, Instant createdAt, Instant expiresAt) {
+    public PlatformInvitation(Long id, Long createdByUserId, String email, String inviteeEmail, String token, Role role, Instant createdAt, Instant expiresAt) {
         this.id = id;
         this.createdByUserId = createdByUserId;
         this.inviteeEmail = inviteeEmail;
         this.token = token;
-        this.roleType = roleType;
+        this.role = role;
         this.createdAt = createdAt;
         this.expiresAt = expiresAt;
         this.invitationStatus = PlatformInvitationStatus.PENDING;
@@ -92,12 +92,12 @@ public class PlatformInvitation {
         this.token = token;
     }
 
-    public Role getRoleType() {
-        return roleType;
+    public Role getRole() {
+        return role;
     }
 
-    public void setRoleType(Role roleType) {
-        this.roleType = roleType;
+    public void setRole(Role role) {
+        this.role = role;
     }
 
     public boolean isExpired() {

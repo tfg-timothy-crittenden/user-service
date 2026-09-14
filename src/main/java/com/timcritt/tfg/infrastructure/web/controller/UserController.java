@@ -42,7 +42,7 @@ public class UserController {
     public List<UserDto> getAllTeachers() {
         log.info("GET /api/users");
 
-        List<User> users = useCase.getAllUsersByRoleType(Role.TEACHER);
+        List<User> users = useCase.getAllUsersByRole(Role.TEACHER);
         return users.stream().map(UserDtoMapper::toDto).collect(Collectors.toList());
 
     }
@@ -58,10 +58,10 @@ public class UserController {
     }
 
     //Should only be for admins
-    @DeleteMapping("/{id}/roles/{roleType}")
-    public ResponseEntity<UserDto> removeRole(@PathVariable Long id, @PathVariable Role roleType) {
-        log.info("DELETE /api/users/{}/roles/{}", id, roleType);
-        return ResponseEntity.ok(UserDtoMapper.toDto(useCase.removeRole(id, roleType)));
+    @DeleteMapping("/{id}/roles/{role}")
+    public ResponseEntity<UserDto> removeRole(@PathVariable Long id, @PathVariable Role role) {
+        log.info("DELETE /api/users/{}/roles/{}", id, role);
+        return ResponseEntity.ok(UserDtoMapper.toDto(useCase.removeRole(id, role)));
     }
 
     //Should only be for admins

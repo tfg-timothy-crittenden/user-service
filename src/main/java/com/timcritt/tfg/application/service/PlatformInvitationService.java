@@ -34,8 +34,8 @@ public class PlatformInvitationService {
         this.invitationUrlTemplate = invitationUrlTemplate;
     }
 
-    public List<PlatformInvitation> findPendingByRoleType(Role roleType) {
-        return platformInvitationRepository.findPendingByRoleType(roleType);
+    public List<PlatformInvitation> findPendingByRole(Role role) {
+        return platformInvitationRepository.findPendingByRole(role);
     }
 
     public BatchDeleteResult deleteAllByIds(List<Long> ids) {
@@ -112,7 +112,7 @@ public class PlatformInvitationService {
             existing.setExpiresAt(expiresAt);
             existing.setPlatformInvitationStatus(PlatformInvitationStatus.PENDING);
             existing.setToken(token);
-            existing.setRoleType(role);
+            existing.setRole(role);
             existing.setConfirmedAt(null);
 
             try {
@@ -137,7 +137,7 @@ public class PlatformInvitationService {
         platformInvitation.setExpiresAt(expiresAt);
         platformInvitation.setPlatformInvitationStatus(PlatformInvitationStatus.PENDING);
         platformInvitation.setToken(token);
-        platformInvitation.setRoleType(role);
+        platformInvitation.setRole(role);
 
         try {
             platformInvitationRepository.save(platformInvitation);
@@ -211,7 +211,7 @@ public class PlatformInvitationService {
         PasswordHash passwordHash = PasswordHash.of(passwordEncoder.encode(password));
 
         // Create the user object and set the attributes
-        User user = User.createFromInvitation(username, name, surname, inviteeEmail, passwordHash, invitation.getRoleType());
+        User user = User.createFromInvitation(username, name, surname, inviteeEmail, passwordHash, invitation.getRole());
         userRepository.save(user);
 
         // Mark invitation as accepted and persist to prevent reuse

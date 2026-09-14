@@ -12,7 +12,6 @@ import com.timcritt.tfg.domain.model.aggregate.user.User;
 import java.util.List;
 import java.util.Optional;
 
-// This class contains business logic for handling User operations.
 public class UserUseCaseService implements UserUseCase {
 
     private final UserRepositoryPort repository;
@@ -20,6 +19,7 @@ public class UserUseCaseService implements UserUseCase {
     public UserUseCaseService(UserRepositoryPort repository) {
         this.repository = repository;
     }
+
 
     @Override
     public User getUserById(Long id) {
@@ -45,9 +45,8 @@ public class UserUseCaseService implements UserUseCase {
         User existingUser = repository.findById(id).orElseThrow(() -> new UserNotFoundException(id, ""));
 
         existingUser.updateProfile(name, surname);
-        existingUser.updateEmail(email);
+        existingUser.changeEmail(email);
         existingUser.updateUsername(username);
-
         return repository.save(existingUser);
     }
 
@@ -73,7 +72,7 @@ public class UserUseCaseService implements UserUseCase {
     }
 
     @Override
-    public List<User> getAllUsersByRoleType(Role role) {
+    public List<User> getAllUsersByRole(Role role) {
         return repository.findAllUsersByRole(role);
     }
 

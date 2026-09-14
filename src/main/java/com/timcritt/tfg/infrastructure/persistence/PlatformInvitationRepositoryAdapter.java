@@ -25,8 +25,8 @@ public class PlatformInvitationRepositoryAdapter implements PlatformInvitationRe
     }
 
     @Override
-    public List<PlatformInvitation> findPendingByRoleType(Role roleType) {
-        return this.repository.findPendingByRoleType(roleType).stream().map(PlatformInvitationEntityMapper::toDomain).collect(Collectors.toList());
+    public List<PlatformInvitation> findPendingByRole(Role role) {
+        return this.repository.findPendingByRole(role).stream().map(PlatformInvitationEntityMapper::toDomain).collect(Collectors.toList());
     }
 
     @Override

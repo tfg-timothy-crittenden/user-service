@@ -60,7 +60,7 @@ class UserControllerSecurityTest {
     void getTeachers_asAdmin_returnsOk() throws Exception {
         Role teacherRole = Role.TEACHER;
         User u = User.rehydrate(1L, "t1", "T", "One", "t1@example.com", Set.of(teacherRole), null, true);
-        given(userUseCase.getAllUsersByRoleType(eq(Role.TEACHER))).willReturn(List.of(u));
+        given(userUseCase.getAllUsersByRole(eq(Role.TEACHER))).willReturn(List.of(u));
 
         mvc.perform(get("/api/users/teachers")).andExpect(status().isOk());
     }
