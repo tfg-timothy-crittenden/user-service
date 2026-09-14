@@ -8,6 +8,7 @@ on:
   
 permissions:
   contents: read
+  packages: write
   
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -46,3 +47,20 @@ jobs:
           -Dsonar.scanner.skipJreProvisioning=true
           -Dsonar.java.binaries=target/classes
           -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+
+      - name: Log in to GitHub Container Registry
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: ci
+          push: true
+          tags: ghcr.io/${{ github.repository }}:${{ github.sha }}
