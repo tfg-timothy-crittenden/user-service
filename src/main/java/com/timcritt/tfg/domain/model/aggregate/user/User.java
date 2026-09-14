@@ -19,6 +19,23 @@ public class User {
     private boolean verified = false;
 
     private User(Long id, String username, String name, String surname, String email, Set<Role> roles, PasswordHash passwordHash, boolean verified) {
+
+        if (username == null || username.isBlank()) {
+            throw new IllegalArgumentException("username cannot be blank");
+        }
+
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("email cannot be blank");
+        }
+
+        if (passwordHash == null) {
+            throw new NullPointerException("passwordHash cannot be null");
+        }
+
+        if (roles == null || roles.isEmpty()) {
+            throw new IllegalArgumentException("user must have at least one role");
+        }
+
         this.id = id;
         this.username = username;
         this.name = name;

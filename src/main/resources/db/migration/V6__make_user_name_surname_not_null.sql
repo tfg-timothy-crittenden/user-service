@@ -1,0 +1,3 @@
+ALTER TABLE users
+    ALTER COLUMN name SET NOT NULL,
+    ALTER COLUMN surname SET NOT NULL;
