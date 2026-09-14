@@ -1,4 +1,4 @@
-name: Promote Candidate Docker image
+name: Promote Docker image
 
 on:
   workflow_dispatch:
@@ -6,7 +6,11 @@ on:
       target_tag:
         description: "Tag to assign"
         required: true
-        default: "latest"
+        type: choice
+        options:
+          - latest
+          - staging
+          - prod
 
 permissions:
   contents: read
@@ -26,13 +30,15 @@ jobs:
 
       - name: Pull candidate image
         run: |
-          docker pull ghcr.io/${{ github.repository }}:candidate
+          docker pull "ghcr.io/${{ github.repository }}:candidate"
 
       - name: Promote image
+        env:
+          TARGET_TAG: ${{ inputs.target_tag }}
         run: |
           docker tag \
-            ghcr.io/${{ github.repository }}:candidate \
-            ghcr.io/${{ github.repository }}:${{ inputs.target_tag }}
+            "ghcr.io/${{ github.repository }}:candidate" \
+            "ghcr.io/${{ github.repository }}:${TARGET_TAG}"
 
           docker push \
-            ghcr.io/${{ github.repository }}:${{ inputs.target_tag }}
+            "ghcr.io/${{ github.repository }}:${TARGET_TAG}"
