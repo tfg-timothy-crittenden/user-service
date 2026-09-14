@@ -13,6 +13,7 @@ import com.timcritt.tfg.domain.model.aggregate.passwordReset.PasswordResetToken;
 import com.timcritt.tfg.domain.model.aggregate.user.PasswordHash;
 import com.timcritt.tfg.domain.model.aggregate.user.User;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -73,7 +74,8 @@ public class PasswordResetService {
         // Persist only its hash.
         String tokenHash = tokenHasher.encode(token);
 
-        PasswordResetToken passwordResetToken = PasswordResetToken.create(user.getId(), tokenHash);
+        Instant now = Instant.now();
+        PasswordResetToken passwordResetToken = PasswordResetToken.create(user.getId(), tokenHash, now);
 
         passwordResetTokenRepository.save(passwordResetToken);
 
@@ -104,7 +106,7 @@ public class PasswordResetService {
                         );
 
         if (!passwordResetToken.isValid()
-                || passwordResetToken.isExpired()) {
+                || passwordResetToken.isExpiredAt(Instant.now())) {
             throw new PasswordResetTokenNotValidException(
                     "Password reset token not valid"
             );

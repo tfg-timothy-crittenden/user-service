@@ -40,9 +40,9 @@ public class PasswordResetToken {
     }
 
     //############################################ Static Factory Methods #############################################
-    public static PasswordResetToken create(Long userId, String tokenHash) {
-        Instant createdAt = Instant.now();
-        Instant expiresAt = Instant.now().plus(Duration.ofHours(1));
+    public static PasswordResetToken create(Long userId, String tokenHash, Instant createdAt) {
+
+        Instant expiresAt = createdAt.plus(Duration.ofHours(1));
         return new PasswordResetToken(null, userId, tokenHash, createdAt, expiresAt, true);
     }
 
@@ -69,8 +69,14 @@ public class PasswordResetToken {
     public boolean isValid() {
         return valid;
     }
-    public boolean isExpired() {
-        return expiresAt != null && expiresAt.isBefore(Instant.now());
+
+    //Pass the time in to facilitate testing and remove the dependency. Current time should not belong to this class.
+    public boolean isExpiredAt(Instant now) {
+        if (now == null) {
+            throw new IllegalArgumentException("now cannot be null");
+        }
+
+        return !now.isBefore(expiresAt);
     }
     public void invalidate() {
         this.valid = false;
