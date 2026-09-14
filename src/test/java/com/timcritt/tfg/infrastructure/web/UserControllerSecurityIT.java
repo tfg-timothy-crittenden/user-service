@@ -34,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @Import(PostgresTestContainerConfiguration.class)
 @ActiveProfiles("test")
-class UserControllerSecurityTest {
+class UserControllerSecurityIT {
 
     @Autowired
     MockMvc mvc;

@@ -9,7 +9,7 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("test")
 @SpringBootTest
 @Import(PostgresTestContainerConfiguration.class)
-class TfgApplicationTests {
+class TfgApplicationIT {
 
     @Test
     void contextLoads() {
