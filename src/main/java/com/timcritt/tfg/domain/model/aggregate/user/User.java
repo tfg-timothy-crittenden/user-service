@@ -4,6 +4,9 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
+import com.timcritt.tfg.application.exception.RoleNotFoundException;
+import com.timcritt.tfg.domain.exception.MustNotRemoveLastUserRoleException;
+import com.timcritt.tfg.domain.exception.UserDoesNotHaveRoleException;
 import com.timcritt.tfg.domain.model.Role;
 import org.jspecify.annotations.Nullable;
 
@@ -20,20 +23,18 @@ public class User {
 
     private User(Long id, String username, String name, String surname, String email, Set<Role> roles, PasswordHash passwordHash, boolean verified) {
 
-        if (username == null || username.isBlank()) {
-            throw new IllegalArgumentException("username cannot be blank");
-        }
-
-        if (email == null || email.isBlank()) {
-            throw new IllegalArgumentException("email cannot be blank");
-        }
+        requireNonBlank(username, "username");
+        requireNonBlank(name, "name");
+        requireNonBlank(surname, "surname");
+        requireNonBlank(email, "email");
 
         if (passwordHash == null) {
             throw new NullPointerException("passwordHash cannot be null");
         }
 
-        if (roles == null || roles.isEmpty()) {
-            throw new IllegalArgumentException("user must have at least one role");
+        if (roles == null || roles.isEmpty() || roles.contains(null)) {
+            throw new IllegalArgumentException(
+                    "user must have at least one valid role");
         }
 
         this.id = id;
@@ -41,7 +42,7 @@ public class User {
         this.name = name;
         this.surname = surname;
         this.email = email;
-        this.roles = (roles == null) ? new HashSet<>() : new HashSet<>(roles);
+        this.roles = new HashSet<>(roles);
         this.passwordHash = passwordHash;
         this.verified = verified;
     }
@@ -66,15 +67,21 @@ public class User {
     //######################################################## BUSINESS LOGIC #########################################
 
     public void updateProfile(String name, String surname) {
+        requireNonBlank(name, "name");
+        requireNonBlank(surname, "surname");
         this.name = name;
         this.surname = surname;
     }
 
     public void updateUsername(String username) {
+        requireNonBlank(username, "username");
         this.username = username;
     }
 
     public void changeEmail(String newEmail) {
+
+        requireNonBlank(newEmail, "newEmail");
+
         if (Objects.equals(this.email, newEmail)) {
             return;
         }
@@ -103,8 +110,13 @@ public class User {
             throw new NullPointerException("role cannot be null");
         }
         if (!roles.contains(role)) {
-            throw new IllegalArgumentException("Role not assigned");
+            throw new UserDoesNotHaveRoleException(role);
         }
+
+        if(roles.size() == 1) {
+            throw new MustNotRemoveLastUserRoleException();
+        }
+
         roles.remove(role);
     }
 
@@ -125,7 +137,7 @@ public class User {
 
     //######################################## GETTERS #############################################################
 
-    public @Nullable PasswordHash getPasswordHash() { return passwordHash; }
+    public PasswordHash getPasswordHash() { return passwordHash;}
     public Long getId() { return id; }
     public String getUsername() { return username; }
     public String getName() { return name; }
@@ -135,6 +147,18 @@ public class User {
     //Return an immutable copy to prevent bypassing business logic by direct mutation of returned collection
     public Set<Role> getRoles() {
         return Set.copyOf(roles);
+    }
+
+
+    private static void requireNonBlank(
+            String value,
+            String fieldName
+    ) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(
+                    fieldName + " cannot be blank"
+            );
+        }
     }
 
     @Override
