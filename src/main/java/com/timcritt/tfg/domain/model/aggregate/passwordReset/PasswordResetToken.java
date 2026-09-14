@@ -14,13 +14,10 @@ public class PasswordResetToken {
 
     private PasswordResetToken(Long id, Long userId, String tokenHash, Instant createdAt, Instant expiresAt, boolean valid) {
 
-        if(userId == null) {
-            throw new IllegalArgumentException("userId cannot be null");
-        }
-
+        requireNotNull(userId, "userId");
         requireNonBlank(tokenHash, "tokenHash");
-        requireNotNull(createdAt, "createdAt cannot be null");
-        requireNotNull(expiresAt, "expiresAt cannot be null");
+        requireNotNull(createdAt, "createdAt");
+        requireNotNull(expiresAt, "expiresAt");
 
         if (!expiresAt.isAfter(createdAt)) {
             throw new IllegalArgumentException("expiresAt must be after createdAt");
@@ -37,7 +34,7 @@ public class PasswordResetToken {
     //############################################ Static Factory Methods #############################################
     public static PasswordResetToken create(Long userId, String tokenHash, Instant createdAt) {
 
-        requireNotNull(createdAt, "createdAt cannot be null");
+        requireNotNull(createdAt, "createdAt");
 
         Instant expiresAt = createdAt.plus(Duration.ofHours(1));
         return new PasswordResetToken(null, userId, tokenHash, createdAt, expiresAt, true);
@@ -69,7 +66,7 @@ public class PasswordResetToken {
 
     //Pass the time in to facilitate testing and remove the dependency. Current time should not belong to this class.
     public boolean isExpiredAt(Instant now) {
-        requireNotNull(now, "now cannot be null");
+        requireNotNull(now, "now");
 
         return !now.isBefore(expiresAt);
     }
