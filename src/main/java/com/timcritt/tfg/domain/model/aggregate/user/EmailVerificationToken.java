@@ -13,9 +13,6 @@ public class EmailVerificationToken {
     private Instant confirmedAt;
     private EmailVerificationStatus status;
 
-    public EmailVerificationToken() {
-    }
-
     public EmailVerificationToken(Long id, Long userId, String userEmail, String token, Instant createdAt, Instant expiresAt) {
         if (expiresAt == null) {
             throw new IllegalArgumentException("expiresAt cannot be null");
