@@ -12,6 +12,7 @@ import com.timcritt.tfg.application.port.outbound.UserRepositoryPort;
 import com.timcritt.tfg.domain.model.aggregate.passwordReset.PasswordResetToken;
 import com.timcritt.tfg.domain.model.aggregate.user.PasswordHash;
 import com.timcritt.tfg.domain.model.aggregate.user.User;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
@@ -44,15 +45,14 @@ public class PasswordResetService {
 
         Optional<User> userOpt = userRepository.findByEmail(email);
 
-        // Don't disclose whether the email is registered.
+        // Return silently to avoid user enumeration.
         if (userOpt.isEmpty()) {
             return;
         }
 
         User user = userOpt.get();
 
-        // Unverified users cannot reset their password.
-        // Still return silently to avoid user enumeration.
+        // Unverified users cannot reset their password. Return silently to avoid user enumeration.
         if (!user.isVerified()) {
             return;
         }
@@ -63,7 +63,7 @@ public class PasswordResetService {
 
         existingTokens.forEach(token -> {
             if (token.isValid()) {
-                token.invalidate();
+                token.revoke();
                 passwordResetTokenRepository.save(token);
             }
         });
@@ -101,14 +101,13 @@ public class PasswordResetService {
                 passwordResetTokenRepository.findByTokenHash(encodedToken)
                         .orElseThrow(() ->
                                 new PasswordResetTokenNotValidException(
-                                        "Password reset token not valid"
+                                        "Password reset token could not be found"
                                 )
                         );
 
-        if (!passwordResetToken.isValid()
-                || passwordResetToken.isExpiredAt(Instant.now())) {
+        if (!passwordResetToken.isUsableAt(Instant.now())) {
             throw new PasswordResetTokenNotValidException(
-                    "Password reset token not valid"
+                    "Password reset token not Usable"
             );
         }
 
@@ -138,7 +137,7 @@ public class PasswordResetService {
 
         user.changePassword(newPasswordHash);
 
-        passwordResetToken.invalidate();
+        passwordResetToken.consumeAt(Instant.now());
 
         userRepository.save(user);
         passwordResetTokenRepository.save(passwordResetToken);

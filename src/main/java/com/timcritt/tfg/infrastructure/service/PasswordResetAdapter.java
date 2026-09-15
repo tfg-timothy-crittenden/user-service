@@ -5,6 +5,7 @@ import com.timcritt.tfg.application.service.PasswordResetService;
 import com.timcritt.tfg.infrastructure.persistence.spring.PasswordResetTokenJpaRepository;
 
 import io.jsonwebtoken.security.Password;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -18,10 +19,12 @@ public class PasswordResetAdapter {
 
     }
 
+    @Transactional
     public void requestPasswordReset(String email) {
         this.delegate.requestPasswordReset(email);
     }
 
+    @Transactional
     public void setNewPassword(String token, String password) {
         this.delegate.setNewPassword(token, password);
     }

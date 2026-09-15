@@ -42,6 +42,7 @@ public class PasswordResetToken {
     }
 
     public static PasswordResetToken rehydrate(Long id, Long userId, String tokenHash, Instant createdAt, Instant expiresAt, boolean valid) {
+        requireNotNull(id, "id");
         return new PasswordResetToken(id, userId, tokenHash, createdAt, expiresAt, valid);
     }
 
@@ -84,7 +85,7 @@ public class PasswordResetToken {
         this.valid = false;
     }
 
-    public void invalidate() {
+    public void revoke() {
         this.valid = false;
     }
 
