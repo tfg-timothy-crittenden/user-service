@@ -13,7 +13,7 @@ public class PlatformInvitation {
     private final Long id;
     private Long createdByUserId;
     private final String inviteeEmail;
-    private String token;
+    private String tokenHash;
     private Role role;
     private ValidityPeriod validityPeriod;
 
@@ -24,7 +24,7 @@ public class PlatformInvitation {
             Long id,
             Long createdByUserId,
             String inviteeEmail,
-            String token,
+            String tokenHash,
             Role role,
             ValidityPeriod validityPeriod,
             Instant confirmedAt,
@@ -32,7 +32,7 @@ public class PlatformInvitation {
     ) {
         requireNotNull(createdByUserId, "createdByUserId");
         requireNonBlank(inviteeEmail, "inviteeEmail");
-        requireNonBlank(token, "token");
+        requireNonBlank(tokenHash, "tokenHash");
         requireNotNull(role, "role");
         requireNotNull(validityPeriod, "validityPeriod");
         requireNotNull(invitationStatus, "invitationStatus");
@@ -40,7 +40,7 @@ public class PlatformInvitation {
         this.id = id;
         this.createdByUserId = createdByUserId;
         this.inviteeEmail = inviteeEmail;
-        this.token = token;
+        this.tokenHash = tokenHash;
         this.role = role;
         this.validityPeriod = validityPeriod;
         this.confirmedAt = confirmedAt;
@@ -52,7 +52,7 @@ public class PlatformInvitation {
     public static PlatformInvitation create(
             Long createdByUserId,
             String inviteeEmail,
-            String token,
+            String tokenHash,
             Role role,
             Instant createdAt
     ) {
@@ -60,7 +60,7 @@ public class PlatformInvitation {
                 null,
                 createdByUserId,
                 inviteeEmail,
-                token,
+                tokenHash,
                 role,
                 ValidityPeriod.startingAt(
                         createdAt,
@@ -75,7 +75,7 @@ public class PlatformInvitation {
             Long id,
             Long createdByUserId,
             String inviteeEmail,
-            String token,
+            String tokenHash,
             Role role,
             Instant createdAt,
             Instant expiresAt,
@@ -88,7 +88,7 @@ public class PlatformInvitation {
                 id,
                 createdByUserId,
                 inviteeEmail,
-                token,
+                tokenHash,
                 role,
                 ValidityPeriod.between(
                         createdAt,
@@ -113,8 +113,8 @@ public class PlatformInvitation {
         return inviteeEmail;
     }
 
-    public String getToken() {
-        return token;
+    public String getTokenHash() {
+        return tokenHash;
     }
 
     public Role getRole() {
@@ -178,16 +178,16 @@ public class PlatformInvitation {
 
     public void reissueAt(
             Long createdByUserId,
-            String newToken,
+            String newTokenHash,
             Role role,
             Instant now
     ) {
         requireNotNull(createdByUserId, "createdByUserId");
-        requireNonBlank(newToken, "newToken");
+        requireNonBlank(newTokenHash, "newTokenHash");
         requireNotNull(role, "role");
 
         this.createdByUserId = createdByUserId;
-        this.token = newToken;
+        this.tokenHash = newTokenHash;
         this.role = role;
         this.validityPeriod =
                 ValidityPeriod.startingAt(
@@ -224,4 +224,3 @@ public class PlatformInvitation {
         }
     }
 }
-

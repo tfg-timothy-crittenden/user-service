@@ -1,9 +1,6 @@
 package com.timcritt.tfg.infrastructure.service;
 
-import com.timcritt.tfg.application.port.outbound.EmailSenderPort;
-import com.timcritt.tfg.application.port.outbound.PasswordEncoderPort;
-import com.timcritt.tfg.application.port.outbound.PlatformInvitationRepositoryPort;
-import com.timcritt.tfg.application.port.outbound.UserRepositoryPort;
+import com.timcritt.tfg.application.port.outbound.*;
 import com.timcritt.tfg.application.service.BatchDeleteResult;
 import com.timcritt.tfg.application.service.PlatformInvitationService;
 import com.timcritt.tfg.infrastructure.security.CustomUserPrincipal;
@@ -24,8 +21,8 @@ public class PlatformInvitationAdapter {
     private final PlatformInvitationService delegate;
 
     public PlatformInvitationAdapter(PasswordEncoderPort passwordEncoder, PlatformInvitationRepositoryPort repository, EmailSenderPort emailSender, UserRepositoryPort userRepository,
-                                     @Value("${app.frontend.invitation-url:http://localhost:5173/signup-with-invitation?token={token}}") String invitationUrlTemplate) {
-        this.delegate = new PlatformInvitationService(passwordEncoder, repository, emailSender, userRepository, invitationUrlTemplate);
+                                     @Value("${app.frontend.invitation-url:http://localhost:5173/signup-with-invitation?token={token}}") String invitationUrlTemplate, TokenGeneratorPort tokenGenerator, TokenHasherPort tokenHasher) {
+        this.delegate = new PlatformInvitationService(passwordEncoder, repository, emailSender, userRepository, tokenGenerator, tokenHasher,invitationUrlTemplate);
     }
 
     public List<PlatformInvitation> findPendingByRole(Role role) {

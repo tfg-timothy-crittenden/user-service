@@ -6,6 +6,8 @@ import com.timcritt.tfg.application.exception.InvitationNotFoundException;
 import com.timcritt.tfg.application.port.outbound.EmailSenderPort;
 import com.timcritt.tfg.application.port.outbound.PasswordEncoderPort;
 import com.timcritt.tfg.application.port.outbound.PlatformInvitationRepositoryPort;
+import com.timcritt.tfg.application.port.outbound.TokenGeneratorPort;
+import com.timcritt.tfg.application.port.outbound.TokenHasherPort;
 import com.timcritt.tfg.application.port.outbound.UserRepositoryPort;
 import com.timcritt.tfg.domain.model.Role;
 import com.timcritt.tfg.domain.model.aggregate.platformInvitation.PlatformInvitation;
@@ -17,7 +19,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public class PlatformInvitationService {
@@ -26,6 +27,8 @@ public class PlatformInvitationService {
     private final PlatformInvitationRepositoryPort platformInvitationRepository;
     private final EmailSenderPort emailSender;
     private final UserRepositoryPort userRepository;
+    private final TokenGeneratorPort tokenGenerator;
+    private final TokenHasherPort tokenHasher;
     private final String invitationUrlTemplate;
 
     public PlatformInvitationService(
@@ -33,12 +36,16 @@ public class PlatformInvitationService {
             PlatformInvitationRepositoryPort platformInvitationRepository,
             EmailSenderPort emailSender,
             UserRepositoryPort userRepository,
+            TokenGeneratorPort tokenGenerator,
+            TokenHasherPort tokenHasher,
             String invitationUrlTemplate
     ) {
         this.passwordEncoder = passwordEncoder;
         this.platformInvitationRepository = platformInvitationRepository;
         this.emailSender = emailSender;
         this.userRepository = userRepository;
+        this.tokenGenerator = tokenGenerator;
+        this.tokenHasher = tokenHasher;
         this.invitationUrlTemplate = invitationUrlTemplate;
     }
 
@@ -94,13 +101,13 @@ public class PlatformInvitationService {
                         .trim()
                         .toLowerCase(Locale.ROOT);
 
-        /*
-         * If the user already exists, an invitation isn't required.
-         * Grant the requested role directly unless they already have it.
-         */
         Optional<User> userOpt =
                 userRepository.findByEmail(normalizedEmail);
 
+        /*
+         * Existing users don't need an invitation.
+         * Grant the role directly.
+         */
         if (userOpt.isPresent()) {
             User existingUser = userOpt.get();
 
@@ -118,7 +125,6 @@ public class PlatformInvitationService {
         }
 
         Instant now = Instant.now();
-        String token = UUID.randomUUID().toString();
 
         Optional<PlatformInvitation> existingInvitationOpt =
                 platformInvitationRepository
@@ -129,40 +135,15 @@ public class PlatformInvitationService {
                     existingInvitationOpt.get();
 
             /*
-             * There is already an active pending invitation.
-             * Reissue it with a fresh token and validity period.
+             * Whether currently active, expired, cancelled or accepted,
+             * reissuing requires a brand-new raw token.
              */
-            if (existing.getPlatformInvitationStatus()
-                    == PlatformInvitationStatus.PENDING
-                    && !existing.isExpiredAt(now)) {
+            String rawToken = tokenGenerator.generate();
+            String tokenHash = tokenHasher.hash(rawToken);
 
-                String newToken =
-                        UUID.randomUUID().toString();
-
-                existing.reissueAt(
-                        createdByUserId,
-                        newToken,
-                        role,
-                        now
-                );
-
-                platformInvitationRepository.save(existing);
-
-                sendInvitationEmailAsync(
-                        normalizedEmail,
-                        newToken
-                );
-
-                return;
-            }
-
-            /*
-             * Reuse an expired, cancelled or previously accepted
-             * invitation row by reissuing it.
-             */
             existing.reissueAt(
                     createdByUserId,
-                    token,
+                    tokenHash,
                     role,
                     now
             );
@@ -171,20 +152,23 @@ public class PlatformInvitationService {
 
             sendInvitationEmailAsync(
                     normalizedEmail,
-                    token
+                    rawToken
             );
 
             return;
         }
 
         /*
-         * No previous invitation exists.
+         * Brand-new invitation.
          */
+        String rawToken = tokenGenerator.generate();
+        String tokenHash = tokenHasher.hash(rawToken);
+
         PlatformInvitation invitation =
                 PlatformInvitation.create(
                         createdByUserId,
                         normalizedEmail,
-                        token,
+                        tokenHash,
                         role,
                         now
                 );
@@ -193,7 +177,7 @@ public class PlatformInvitationService {
 
         sendInvitationEmailAsync(
                 normalizedEmail,
-                token
+                rawToken
         );
     }
 
@@ -208,11 +192,13 @@ public class PlatformInvitationService {
                         );
 
         Instant now = Instant.now();
-        String newToken = UUID.randomUUID().toString();
+
+        String rawToken = tokenGenerator.generate();
+        String tokenHash = tokenHasher.hash(rawToken);
 
         invitation.reissueAt(
                 invitation.getCreatedByUserId(),
-                newToken,
+                tokenHash,
                 invitation.getRole(),
                 now
         );
@@ -221,33 +207,30 @@ public class PlatformInvitationService {
 
         sendInvitationEmailAsync(
                 invitation.getInviteeEmail(),
-                newToken
+                rawToken
         );
     }
 
     public void signUpWithInvitationToken(
-            String token,
+            String rawToken,
             String username,
             String name,
             String surname,
             String password
     ) {
+        String tokenHash = tokenHasher.hash(rawToken);
+
         PlatformInvitation invitation =
                 platformInvitationRepository
-                        .findByToken(token)
+                        .findByTokenHash(tokenHash)
                         .orElseThrow(
                                 () -> new InvitationNotFoundException(
-                                        token
+                                        rawToken
                                 )
                         );
 
         Instant now = Instant.now();
 
-        /*
-         * Keep the application-specific exception exposed by
-         * the use case, while the actual expiry calculation
-         * belongs to the domain object.
-         */
         if (invitation.isExpiredAt(now)) {
             throw new InvitationExpiredException();
         }
@@ -284,10 +267,6 @@ public class PlatformInvitationService {
 
         userRepository.save(user);
 
-        /*
-         * confirmAt() owns the PENDING -> ACCEPTED
-         * state transition and sets confirmedAt.
-         */
         invitation.confirmAt(now);
 
         platformInvitationRepository.save(invitation);
@@ -295,12 +274,12 @@ public class PlatformInvitationService {
 
     private void sendInvitationEmailAsync(
             String email,
-            String token
+            String rawToken
     ) {
         String link =
                 invitationUrlTemplate.replace(
                         "{token}",
-                        token
+                        rawToken
                 );
 
         CompletableFuture.runAsync(() -> {
@@ -315,4 +294,3 @@ public class PlatformInvitationService {
         });
     }
 }
-

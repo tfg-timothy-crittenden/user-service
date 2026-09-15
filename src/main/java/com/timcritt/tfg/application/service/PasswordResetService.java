@@ -7,12 +7,11 @@ import com.timcritt.tfg.application.exception.UserNotFoundException;
 import com.timcritt.tfg.application.port.outbound.EmailSenderPort;
 import com.timcritt.tfg.application.port.outbound.PasswordEncoderPort;
 import com.timcritt.tfg.application.port.outbound.PasswordResetTokenRepositoryPort;
-import com.timcritt.tfg.application.port.outbound.TokenEncoderPort;
+import com.timcritt.tfg.application.port.outbound.TokenHasherPort;
 import com.timcritt.tfg.application.port.outbound.UserRepositoryPort;
 import com.timcritt.tfg.domain.model.aggregate.passwordReset.PasswordResetToken;
 import com.timcritt.tfg.domain.model.aggregate.user.PasswordHash;
 import com.timcritt.tfg.domain.model.aggregate.user.User;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
@@ -23,14 +22,14 @@ public class PasswordResetService {
 
     private final UserRepositoryPort userRepository;
     private final EmailSenderPort emailSender;
-    private final TokenEncoderPort tokenHasher;
+    private final TokenHasherPort tokenHasher;
     private final PasswordResetTokenRepositoryPort passwordResetTokenRepository;
     private final PasswordEncoderPort passwordEncoder;
 
     public PasswordResetService(
             UserRepositoryPort userRepository,
             EmailSenderPort emailSender,
-            TokenEncoderPort tokenHasher,
+            TokenHasherPort tokenHasher,
             PasswordResetTokenRepositoryPort passwordResetTokenRepository,
             PasswordEncoderPort passwordEncoder
     ) {
@@ -72,7 +71,7 @@ public class PasswordResetService {
         String token = UUID.randomUUID().toString();
 
         // Persist only its hash.
-        String tokenHash = tokenHasher.encode(token);
+        String tokenHash = tokenHasher.hash(token);
 
         Instant now = Instant.now();
         PasswordResetToken passwordResetToken = PasswordResetToken.create(user.getId(), tokenHash, now);
@@ -95,7 +94,7 @@ public class PasswordResetService {
 
     public void setNewPassword(String token, String newPassword) {
 
-        String encodedToken = tokenHasher.encode(token);
+        String encodedToken = tokenHasher.hash(token);
 
         PasswordResetToken passwordResetToken =
                 passwordResetTokenRepository.findByTokenHash(encodedToken)

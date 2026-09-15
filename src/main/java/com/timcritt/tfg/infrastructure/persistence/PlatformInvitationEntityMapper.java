@@ -10,7 +10,7 @@ public class PlatformInvitationEntityMapper {
                 jpaEntity.getId(),
                 jpaEntity.getCreatedByUserId(),
                 jpaEntity.getInviteeEmail(),
-                jpaEntity.getToken(),
+                jpaEntity.getTokenHash(),
                 jpaEntity.getRole(),
                 jpaEntity.getCreatedAt(),
                 jpaEntity.getExpiresAt(),
@@ -29,7 +29,7 @@ public class PlatformInvitationEntityMapper {
         entity.setExpiresAt(domain.getExpiresAt());
         entity.setConfirmedAt(domain.getConfirmedAt());
         entity.setPlatformInvitationStatus(domain.getPlatformInvitationStatus());
-        entity.setToken(domain.getToken());
+        entity.setTokenHash(domain.getTokenHash());
         entity.setRole(domain.getRole());
 
         return entity;

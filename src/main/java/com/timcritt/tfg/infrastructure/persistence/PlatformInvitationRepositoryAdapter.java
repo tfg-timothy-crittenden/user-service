@@ -59,8 +59,8 @@ public class PlatformInvitationRepositoryAdapter implements PlatformInvitationRe
     }
 
     @Override
-    public Optional<PlatformInvitation> findByToken(String token) {
-        return repository.findByToken(token).map(PlatformInvitationEntityMapper::toDomain);
+    public Optional<PlatformInvitation> findByTokenHash(String token) {
+        return repository.findByTokenHash(token).map(PlatformInvitationEntityMapper::toDomain);
     }
 
 

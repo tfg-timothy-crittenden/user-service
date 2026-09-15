@@ -14,7 +14,7 @@ public interface PlatformInvitationJpaRepository extends JpaRepository<PlatformI
 
     Optional<PlatformInvitationJpaEntity> findById(Long invitationId);
     Optional<PlatformInvitationJpaEntity> findByInviteeEmail(String inviteeEmail);
-    Optional<PlatformInvitationJpaEntity> findByToken(String Token);
+    Optional<PlatformInvitationJpaEntity> findByTokenHash(String Token);
 
     @Query("SELECT p FROM PlatformInvitationJpaEntity p WHERE p.platformInvitationStatus = 'PENDING' AND p.role = :role")
     List<PlatformInvitationJpaEntity> findPendingByRole(@Param("role") Role roleType);

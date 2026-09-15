@@ -14,11 +14,15 @@ public interface PlatformInvitationRepositoryPort {
 
     List<PlatformInvitation> findPendingByRole(Role role);
 
+
+
     void save(PlatformInvitation platformInvitation);
 
     void deleteAllByIds(List<Long> ids);
 
     List<PlatformInvitation> findAllByIds(List<Long> ids);
 
-    Optional<PlatformInvitation> findByToken(String token);
+    Optional<PlatformInvitation> findByTokenHash(String tokenHash);
+
+
 }
