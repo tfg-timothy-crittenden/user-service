@@ -56,7 +56,7 @@ public class PlatformInvitationJpaEntity {
 
     }
 
-    public PlatformInvitationJpaEntity(Long Id, Long createdByUserId, String inviteeEmail, Instant createdAt, Instant expiresAt, Instant confirmedAt, PlatformInvitationStatus platformInvitationStatus, String tokenHash, Role role) {
+    public PlatformInvitationJpaEntity(Long id, Long createdByUserId, String inviteeEmail, Instant createdAt, Instant expiresAt, Instant confirmedAt, PlatformInvitationStatus platformInvitationStatus, String tokenHash, Role role) {
         this.id = id;
         this.createdByUserId = createdByUserId;
         this.inviteeEmail = inviteeEmail;

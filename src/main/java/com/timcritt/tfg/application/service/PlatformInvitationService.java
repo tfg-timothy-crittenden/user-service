@@ -11,7 +11,6 @@ import com.timcritt.tfg.application.port.outbound.TokenHasherPort;
 import com.timcritt.tfg.application.port.outbound.UserRepositoryPort;
 import com.timcritt.tfg.domain.model.Role;
 import com.timcritt.tfg.domain.model.aggregate.platformInvitation.PlatformInvitation;
-import com.timcritt.tfg.domain.model.aggregate.platformInvitation.PlatformInvitationStatus;
 import com.timcritt.tfg.domain.model.aggregate.user.PasswordHash;
 import com.timcritt.tfg.domain.model.aggregate.user.User;
 
@@ -186,9 +185,7 @@ public class PlatformInvitationService {
                 platformInvitationRepository
                         .findByInvitationId(invitationId)
                         .orElseThrow(
-                                () -> new InvitationNotFoundException(
-                                        String.valueOf(invitationId)
-                                )
+                                () -> new InvitationNotFoundException()
                         );
 
         Instant now = Instant.now();
@@ -224,9 +221,7 @@ public class PlatformInvitationService {
                 platformInvitationRepository
                         .findByTokenHash(tokenHash)
                         .orElseThrow(
-                                () -> new InvitationNotFoundException(
-                                        rawToken
-                                )
+                                () -> new InvitationNotFoundException()
                         );
 
         Instant now = Instant.now();
