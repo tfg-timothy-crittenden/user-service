@@ -120,6 +120,28 @@ public class PasswordResetTokenTest {
         assertFalse(token.isValid());
     }
 
+    @Test
+    void tokenShouldBeExpiredExactlyAtExpiryTime() {
+        Instant createdAt = Instant.parse("2026-09-15T12:00:00Z");
+
+        PasswordResetToken token =
+                PasswordResetToken.create(1L, "hash", createdAt);
+
+        assertTrue(token.isExpiredAt(createdAt.plus(Duration.ofHours(1))));
+    }
+
+    @Test
+    void rehydrateShouldRejectExpiryEqualToCreationTime() {
+        Instant instant = Instant.parse("2026-09-15T12:00:00Z");
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> PasswordResetToken.rehydrate(
+                        1L, 1L, "hash", instant, instant, true
+                )
+        );
+    }
+
     //############################ Helpers ###################################
     private PasswordResetToken createValidPasswordResetToken() {
         return PasswordResetToken.create(1L, "hash", Instant.now());
