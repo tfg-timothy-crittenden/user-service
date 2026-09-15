@@ -6,18 +6,18 @@ import com.timcritt.tfg.infrastructure.persistence.jpa.PlatformInvitationJpaEnti
 public class PlatformInvitationEntityMapper {
 
     static PlatformInvitation toDomain(PlatformInvitationJpaEntity jpaEntity) {
-        PlatformInvitation domain = new PlatformInvitation();
-        domain.setId(jpaEntity.getId());
-        domain.setCreatedByUserId(jpaEntity.getCreatedByUserId());
-        domain.setEmailInvitee(jpaEntity.getInviteeEmail());
-        domain.setCreatedAt(jpaEntity.getCreatedAt());
-        domain.setexpiresAt(jpaEntity.getExpiresAt());
-        domain.setConfirmedAt(jpaEntity.getConfirmedAt());
-        domain.setPlatformInvitationStatus(jpaEntity.getPlatformInvitationStatus());
-        domain.setToken(jpaEntity.getToken());
-        domain.setRole(jpaEntity.getRole());
+        return PlatformInvitation.rehydrate(
+                jpaEntity.getId(),
+                jpaEntity.getCreatedByUserId(),
+                jpaEntity.getInviteeEmail(),
+                jpaEntity.getToken(),
+                jpaEntity.getRole(),
+                jpaEntity.getCreatedAt(),
+                jpaEntity.getExpiresAt(),
+                jpaEntity.getConfirmedAt(),
+                jpaEntity.getPlatformInvitationStatus()
+        );
 
-        return domain;
     }
 
     static PlatformInvitationJpaEntity toEntity(PlatformInvitation domain) {

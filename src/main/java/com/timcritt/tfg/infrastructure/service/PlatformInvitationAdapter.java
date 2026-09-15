@@ -53,6 +53,6 @@ public class PlatformInvitationAdapter {
 
     @Transactional
     public void signupWithInvitationToken(String token, String username, String name, String surname, String password) {
-        delegate.signUpWIthInvitationToken(token, username, name, surname, password);
+        delegate.signUpWithInvitationToken(token, username, name, surname, password);
     }
 }
