@@ -9,13 +9,15 @@ public class EmailVerificationTokenEntityMapper {
     public static EmailVerificationToken toDomain(EmailVerificationTokenJpaEntity entity) {
         if (entity == null) return null;
 
-        return new EmailVerificationToken(
+        return EmailVerificationToken.rehydrate(
                 entity.getId(),
                 entity.getUser() != null ? entity.getUser().getId() : null,
                 entity.getUserEmail(),
                 entity.getToken(),
                 entity.getCreatedAt(),
-                entity.getExpiresAt()
+                entity.getExpiresAt(),
+                entity.getConfirmedAt(),
+                entity.getStatus()
         );
     }
 

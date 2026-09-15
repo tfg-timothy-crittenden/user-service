@@ -27,8 +27,7 @@ public class EmailVerificationService {
         // create token
         String token = UUID.randomUUID().toString();
         Instant now = Instant.now();
-        Instant expiresAt = now.plusSeconds(60 * 60 * 24); // 24 hours
-        EmailVerificationToken ev = new EmailVerificationToken(null, userId, userEmail, token, now, expiresAt);
+        EmailVerificationToken ev = EmailVerificationToken.create(userId, userEmail, token, now);
         tokenRepository.save(ev);
 
         // build link using configured frontend URL template. Template should contain "{token}" placeholder.
@@ -63,12 +62,12 @@ public class EmailVerificationService {
     public void confirmToken(String token) {
         EmailVerificationToken ev = tokenRepository.findByToken(token).orElseThrow(() -> new IllegalArgumentException("Invalid token"));
 
-        if (ev.isExpired()) {
+        if (ev.isExpiredAt(Instant.now())) {
             throw new IllegalStateException("Token expired");
         }
 
         // mark token confirmed
-        ev.confirm();
+        ev.confirmAt(Instant.now());
         tokenRepository.save(ev);
 
         // mark user verified

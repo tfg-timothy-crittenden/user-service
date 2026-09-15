@@ -1,80 +1,115 @@
+
 package com.timcritt.tfg.domain.model.aggregate.passwordReset;
 
 import com.timcritt.tfg.domain.exception.InvalidPasswordResetTokenException;
+import com.timcritt.tfg.domain.model.ValidityPeriod;
 
 import java.time.Duration;
 import java.time.Instant;
 
 public class PasswordResetToken {
 
+    private static final Duration VALIDITY_DURATION = Duration.ofHours(1);
+
     private final Long id;
     private final Long userId;
     private final String tokenHash;
-    private final Instant createdAt;
-    private final Instant expiresAt;
-    private boolean valid = true;
+    private final ValidityPeriod validityPeriod;
+    private boolean valid;
 
-    private PasswordResetToken(Long id, Long userId, String tokenHash, Instant createdAt, Instant expiresAt, boolean valid) {
-
+    private PasswordResetToken(
+            Long id,
+            Long userId,
+            String tokenHash,
+            ValidityPeriod validityPeriod,
+            boolean valid
+    ) {
         requireNotNull(userId, "userId");
         requireNonBlank(tokenHash, "tokenHash");
-        requireNotNull(createdAt, "createdAt");
-        requireNotNull(expiresAt, "expiresAt");
-
-        if (!expiresAt.isAfter(createdAt)) {
-            throw new IllegalArgumentException("expiresAt must be after createdAt");
-        }
+        requireNotNull(validityPeriod, "validityPeriod");
 
         this.id = id;
         this.userId = userId;
         this.tokenHash = tokenHash;
-        this.createdAt = createdAt;
-        this.expiresAt = expiresAt;
+        this.validityPeriod = validityPeriod;
         this.valid = valid;
     }
 
     //############################################ Static Factory Methods #############################################
-    public static PasswordResetToken create(Long userId, String tokenHash, Instant createdAt) {
 
-        requireNotNull(createdAt, "createdAt");
-        Instant expiresAt = createdAt.plus(Duration.ofHours(1));
-        return new PasswordResetToken(null, userId, tokenHash, createdAt, expiresAt, true);
+    public static PasswordResetToken create(
+            Long userId,
+            String tokenHash,
+            Instant createdAt
+    ) {
+        return new PasswordResetToken(
+                null,
+                userId,
+                tokenHash,
+                ValidityPeriod.startingAt(
+                        createdAt,
+                        VALIDITY_DURATION
+                ),
+                true
+        );
     }
 
-    public static PasswordResetToken rehydrate(Long id, Long userId, String tokenHash, Instant createdAt, Instant expiresAt, boolean valid) {
+    public static PasswordResetToken rehydrate(
+            Long id,
+            Long userId,
+            String tokenHash,
+            Instant createdAt,
+            Instant expiresAt,
+            boolean valid
+    ) {
         requireNotNull(id, "id");
-        return new PasswordResetToken(id, userId, tokenHash, createdAt, expiresAt, valid);
+
+        return new PasswordResetToken(
+                id,
+                userId,
+                tokenHash,
+                ValidityPeriod.between(
+                        createdAt,
+                        expiresAt
+                ),
+                valid
+        );
     }
 
-    //############################################ Generic Getters ##################################################
+    //############################################ Getters ##################################################
+
     public Long getId() {
         return id;
     }
+
     public Long getUserId() {
         return userId;
     }
+
     public String getTokenHash() {
         return tokenHash;
     }
+
     public Instant getCreatedAt() {
-        return createdAt;
+        return validityPeriod.createdAt();
     }
+
     public Instant getExpiresAt() {
-        return expiresAt;
+        return validityPeriod.expiresAt();
     }
+
     public boolean isValid() {
         return valid;
     }
 
-    //Pass the time in to facilitate testing and remove the dependency. Current time should not belong to this class.
+    //############################################ Business Logic ##################################################
+
     public boolean isExpiredAt(Instant now) {
-        requireNotNull(now, "now");
-        return !now.isBefore(expiresAt);
+        return validityPeriod.isExpiredAt(now);
     }
 
     public boolean isUsableAt(Instant now) {
-        requireNotNull(now, "now");
-        return valid && !isExpiredAt(now);
+        return valid && !validityPeriod.isExpiredAt(now);
     }
 
     public void consumeAt(Instant now) {
@@ -82,14 +117,15 @@ public class PasswordResetToken {
             throw new InvalidPasswordResetTokenException();
         }
 
-        this.valid = false;
+        valid = false;
     }
 
     public void revoke() {
-        this.valid = false;
+        valid = false;
     }
 
-    //########################################## Helpers #########################################################
+    //############################################ Helpers ##################################################
+
     private static void requireNonBlank(
             String value,
             String fieldName
@@ -101,10 +137,15 @@ public class PasswordResetToken {
         }
     }
 
-    private static void requireNotNull(Object object, String fieldName) {
+    private static void requireNotNull(
+            Object object,
+            String fieldName
+    ) {
         if (object == null) {
-            throw new IllegalArgumentException(fieldName + " cannot be null");
+            throw new IllegalArgumentException(
+                    fieldName + " cannot be null"
+            );
         }
     }
-
 }
+
