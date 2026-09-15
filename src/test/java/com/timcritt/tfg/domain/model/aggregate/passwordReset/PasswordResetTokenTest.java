@@ -142,12 +142,4 @@ public class PasswordResetTokenTest {
         );
     }
 
-    //############################ Helpers ###################################
-    private PasswordResetToken createValidPasswordResetToken() {
-        return PasswordResetToken.create(1L, "hash", Instant.now());
-    }
-
-    private PasswordResetToken rehydrateValidPasswordResetToken() {
-        return PasswordResetToken.rehydrate(1L, 2L, "hash", Instant.now(), Instant.now().plus(Duration.ofHours(1)), true);
-    }
 }
