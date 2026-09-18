@@ -5,7 +5,6 @@ import com.timcritt.tfg.application.port.inbound.UserUseCase;
 import com.timcritt.tfg.application.port.outbound.UserEventPublisherPort;
 import com.timcritt.tfg.application.port.outbound.UserRepositoryPort;
 import com.timcritt.tfg.application.service.UserUseCaseService;
-import com.timcritt.tfg.domain.event.TeacherRoleRevokedEvent;
 import com.timcritt.tfg.domain.model.Role;
 import com.timcritt.tfg.domain.model.aggregate.user.User;
 import org.springframework.stereotype.Service;
@@ -18,7 +17,6 @@ import java.util.Optional;
 public class UserServiceAdapter implements UserUseCase {
 
     private final UserUseCaseService delegate;
-    private final UserEventPublisherPort userEventPublisher;
     private final EmailVerificationUseCase emailVerificationUseCase;
 
     public UserServiceAdapter(
@@ -33,7 +31,6 @@ public class UserServiceAdapter implements UserUseCase {
         );
 
         this.emailVerificationUseCase = emailVerificationUseCase;
-        this.userEventPublisher = userEventPublisher;
     }
 
     @Override
@@ -112,14 +109,6 @@ public class UserServiceAdapter implements UserUseCase {
     @Override
     @Transactional
     public User removeRole(Long userId, Role role) {
-        User user = delegate.removeRole(userId, role);
-
-        if (role == Role.TEACHER) {
-            userEventPublisher.publishTeacherRoleRevoked(
-                    new TeacherRoleRevokedEvent(userId)
-            );
-        }
-
-        return user;
+        return delegate.removeRole(userId, role);
     }
 }

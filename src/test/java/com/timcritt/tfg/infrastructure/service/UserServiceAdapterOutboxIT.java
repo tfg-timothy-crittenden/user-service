@@ -38,58 +38,40 @@ class UserServiceAdapterOutboxIT {
     @Autowired
     private ObjectMapper objectMapper;
 
-    /*
-     * This is a spy rather than a normal mock.
-     *
-     * Normally it behaves like the real Spring Data repository and
-     * persists outbox events to the Testcontainers PostgreSQL database.
-     *
-     * In the rollback test, we temporarily force save() to fail so we
-     * can prove that the user-role change is rolled back as part of the
-     * same transaction.
-     */
     @MockitoSpyBean
     private OutboxEventJpaRepository outboxRepository;
 
     @Test
     void shouldWriteOutboxEventWhenTeacherRoleIsRevoked() throws Exception {
-        // Arrange:
-        // Create and persist a user with both STUDENT and TEACHER roles.
         User teacher = createTeacher();
-
         User saved = userRepository.save(teacher);
 
-        // Act:
-        // Revoke the TEACHER role through the real transactional service.
         userService.removeRole(
                 saved.getId(),
                 Role.TEACHER
         );
 
-        // Assert:
-        // Reload the user from the database.
         User reloaded = userRepository.findById(saved.getId())
                 .orElseThrow();
 
-        // The TEACHER role should have been removed.
         assertFalse(reloaded.hasRole(Role.TEACHER));
-
-        // STUDENT should remain.
         assertTrue(reloaded.hasRole(Role.STUDENT));
 
-        // Find the outbox event created for this user.
         List<OutboxEventJpaEntity> events =
                 outboxRepository.findAll();
 
         OutboxEventJpaEntity event = events.stream()
                 .filter(e ->
-                        e.getAggregateId()
-                                .equals(saved.getId().toString())
+                        saved.getId().toString()
+                                .equals(e.getAggregateId())
+                )
+                .filter(e ->
+                        "user.teacher-role-revoked.v1"
+                                .equals(e.getEventType())
                 )
                 .findFirst()
                 .orElseThrow();
 
-        // Check the outbox metadata.
         assertEquals(
                 "USER",
                 event.getAggregateType()
@@ -101,27 +83,13 @@ class UserServiceAdapterOutboxIT {
         );
 
         assertEquals(
-                "TEACHER_ROLE_REVOKED",
+                "user.teacher-role-revoked.v1",
                 event.getEventType()
         );
 
         assertNotNull(event.getId());
         assertNotNull(event.getCreatedAt());
 
-        /*
-         * Do not compare the JSON as a raw String.
-         *
-         * PostgreSQL JSONB is allowed to normalize formatting, for example:
-         *
-         * {"userId":7}
-         *
-         * might come back as:
-         *
-         * {"userId": 7}
-         *
-         * Parsing the payload lets us test the actual JSON data instead
-         * of depending on whitespace/formatting.
-         */
         JsonNode payload =
                 objectMapper.readTree(event.getPayload());
 
@@ -133,28 +101,17 @@ class UserServiceAdapterOutboxIT {
 
     @Test
     void shouldRollbackRoleRemovalWhenOutboxWriteFails() {
-        // Arrange:
-        // First persist a real user with STUDENT + TEACHER.
         User teacher = createTeacher();
-
         User saved = userRepository.save(teacher);
 
-        /*
-         * Force the outbox repository to fail when the application attempts
-         * to persist the domain event.
-         *
-         * The important thing here is that the role update and outbox insert
-         * happen inside the same transaction.
-         */
         doThrow(
                 new DataAccessResourceFailureException(
                         "Simulated outbox failure"
                 )
-        ).when(outboxRepository)
+        )
+                .when(outboxRepository)
                 .save(any(OutboxEventJpaEntity.class));
 
-        // Act + assert:
-        // The whole use case should fail.
         assertThrows(
                 DataAccessResourceFailureException.class,
                 () -> userService.removeRole(
@@ -163,12 +120,6 @@ class UserServiceAdapterOutboxIT {
                 )
         );
 
-        /*
-         * Now reload the user AFTER the failed transaction.
-         *
-         * If the transaction really rolled back, the TEACHER role should
-         * still exist in the database.
-         */
         User reloaded = userRepository.findById(saved.getId())
                 .orElseThrow();
 
@@ -177,68 +128,129 @@ class UserServiceAdapterOutboxIT {
     }
 
     @Test
-    void shouldWriteUserCreatedEventToOutbox() throws Exception {
-        User saved = userService.createUser(
-                "tim",
+    void shouldWriteProfileUpdatedEventToOutbox() throws Exception {
+        String suffix = UUID.randomUUID().toString();
+
+        User user = User.createStudent(
+                "tim-" + suffix,
                 "Tim",
                 "Crittenden",
-                "tim@example.com",
-                "password"
+                "tim-" + suffix + "@example.com",
+                PasswordHash.of("hashed-password")
+        );
+
+        User saved = userRepository.save(user);
+
+        User updated = userService.updateUser(
+                saved.getId(),
+                saved.getUsername(),
+                "Timothy",
+                saved.getSurname(),
+                saved.getEmail()
         );
 
         OutboxEventJpaEntity event = outboxRepository.findAll()
                 .stream()
-                .filter(e -> "user.created.v1".equals(e.getEventType()))
-                .filter(e -> saved.getId().toString().equals(e.getAggregateId()))
+                .filter(e ->
+                        "user.profile-updated.v1"
+                                .equals(e.getEventType())
+                )
+                .filter(e ->
+                        saved.getId().toString()
+                                .equals(e.getAggregateId())
+                )
                 .findFirst()
                 .orElseThrow();
 
-        assertEquals("USER", event.getAggregateType());
+        assertEquals(
+                "USER",
+                event.getAggregateType()
+        );
 
-        JsonNode payload = objectMapper.readTree(event.getPayload());
+        assertEquals(
+                saved.getId().toString(),
+                event.getAggregateId()
+        );
 
-        assertEquals(saved.getId().longValue(),
-                payload.get("userId").asLong());
+        assertNotNull(event.getId());
+        assertNotNull(event.getCreatedAt());
 
-        assertEquals(saved.getVersion(),
-                payload.get("version").asLong());
+        JsonNode payload =
+                objectMapper.readTree(event.getPayload());
 
-        assertEquals("Tim",
-                payload.get("firstName").asText());
+        assertEquals(
+                saved.getId().longValue(),
+                payload.get("userId").asLong()
+        );
 
-        assertEquals("Crittenden",
-                payload.get("lastName").asText());
+        assertEquals(
+                updated.getVersion(),
+                payload.get("version").asLong()
+        );
+
+        assertEquals(
+                "Timothy",
+                payload.get("firstName").asText()
+        );
+
+        assertEquals(
+                saved.getSurname(),
+                payload.get("lastName").asText()
+        );
     }
 
     @Test
-    void shouldRollbackUserCreationWhenOutboxWriteFails() {
-        doThrow(new DataAccessResourceFailureException(
-                "Simulated outbox failure"
-        ))
+    void shouldRollbackProfileUpdateWhenOutboxWriteFails() {
+        String suffix = UUID.randomUUID().toString();
+
+        User user = User.createStudent(
+                "tim-" + suffix,
+                "Tim",
+                "Crittenden",
+                "tim-" + suffix + "@example.com",
+                PasswordHash.of("hashed-password")
+        );
+
+        User saved = userRepository.save(user);
+
+        long originalVersion = saved.getVersion();
+
+        doThrow(
+                new DataAccessResourceFailureException(
+                        "Simulated outbox failure"
+                )
+        )
                 .when(outboxRepository)
                 .save(any(OutboxEventJpaEntity.class));
 
         assertThrows(
                 DataAccessResourceFailureException.class,
-                () -> userService.createUser(
-                        "tim",
-                        "Tim",
-                        "Crittenden",
-                        "tim@example.com",
-                        "password"
+                () -> userService.updateUser(
+                        saved.getId(),
+                        saved.getUsername(),
+                        "Timothy",
+                        saved.getSurname(),
+                        saved.getEmail()
                 )
         );
 
-        assertTrue(
-                userRepository.findByEmail("tim@example.com").isEmpty()
+        User reloaded = userRepository.findById(saved.getId())
+                .orElseThrow();
+
+        assertEquals("Tim", reloaded.getName());
+
+        assertEquals(
+                "Crittenden",
+                reloaded.getSurname()
+        );
+
+        assertEquals(
+                originalVersion,
+                reloaded.getVersion()
         );
     }
 
     private User createTeacher() {
-        /*
-         * Use unique username/email values so this integration test cannot
-         * collide with users inserted by other tests.
-         */
         String suffix = UUID.randomUUID().toString();
 
         User user = User.createStudent(

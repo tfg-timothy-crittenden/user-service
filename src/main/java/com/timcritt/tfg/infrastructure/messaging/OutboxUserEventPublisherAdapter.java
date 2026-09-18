@@ -17,8 +17,8 @@ public class OutboxUserEventPublisherAdapter implements UserEventPublisherPort {
 
     private static final String AGGREGATE_TYPE = "USER";
 
-    private static final String USER_CREATED_EVENT =
-            "user.created.v1";
+    private static final String USER_PROFILE_UPDATED_EVENT =
+            "user.profile-updated.v1";
 
     private static final String TEACHER_ROLE_REVOKED_EVENT =
             "user.teacher-role-revoked.v1";
@@ -53,7 +53,7 @@ public class OutboxUserEventPublisherAdapter implements UserEventPublisherPort {
         saveEvent(
                 AGGREGATE_TYPE,
                 event.userId().toString(),
-                USER_CREATED_EVENT,
+                USER_PROFILE_UPDATED_EVENT,
                 event
         );
     }

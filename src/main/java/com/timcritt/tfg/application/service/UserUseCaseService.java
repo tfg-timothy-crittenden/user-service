@@ -6,6 +6,7 @@ import com.timcritt.tfg.application.port.inbound.EmailVerificationUseCase;
 import com.timcritt.tfg.application.port.inbound.UserUseCase;
 import com.timcritt.tfg.application.port.outbound.UserEventPublisherPort;
 import com.timcritt.tfg.application.port.outbound.UserRepositoryPort;
+import com.timcritt.tfg.domain.event.TeacherRoleRevokedEvent;
 import com.timcritt.tfg.domain.event.UserProfileUpdatedEvent;
 import com.timcritt.tfg.domain.model.Role;
 import com.timcritt.tfg.application.exception.UserAlreadyExistsException;
@@ -53,8 +54,13 @@ public class UserUseCaseService implements UserUseCase {
         User existingUser = repository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(id, ""));
 
+
         boolean emailChanged =
                 !existingUser.getEmail().equalsIgnoreCase(email);
+
+        boolean profileChanged =
+                !existingUser.getName().equals(name)
+                        || !existingUser.getSurname().equals(surname);
 
         repository.findByUsername(username)
                 .filter(found -> !found.getId().equals(id))
@@ -80,14 +86,16 @@ public class UserUseCaseService implements UserUseCase {
 
         User updated = repository.save(existingUser);
 
-        userEventPublisher.publishUserProfileUpdated(
-                new UserProfileUpdatedEvent(
-                        updated.getId(),
-                        updated.getVersion(),
-                        updated.getName(),
-                        updated.getSurname()
-                )
-        );
+        if (profileChanged) {
+            userEventPublisher.publishUserProfileUpdated(
+                    new UserProfileUpdatedEvent(
+                            updated.getId(),
+                            updated.getVersion(),
+                            updated.getName(),
+                            updated.getSurname()
+                    )
+            );
+        }
 
         if (emailChanged) {
             emailVerificationService.createAndSendToken(
@@ -128,13 +136,27 @@ public class UserUseCaseService implements UserUseCase {
     @Override
     public User removeRole(Long userId, Role roleToRemove) {
         User user = repository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(userId, ""));
+                .orElseThrow(() ->
+                        new UserNotFoundException(userId, "")
+                );
 
         if (!user.hasRole(roleToRemove)) {
-            throw new RoleNotFoundException(userId, roleToRemove.name());
+            throw new RoleNotFoundException(
+                    userId,
+                    roleToRemove.name()
+            );
         }
 
         user.revokeRole(roleToRemove);
-        return repository.save(user);
+
+        User updated = repository.save(user);
+
+        if (roleToRemove == Role.TEACHER) {
+            userEventPublisher.publishTeacherRoleRevoked(
+                    new TeacherRoleRevokedEvent(userId)
+            );
+        }
+
+        return updated;
     }
 }

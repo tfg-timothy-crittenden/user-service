@@ -6,6 +6,7 @@ import com.timcritt.tfg.application.exception.UserNotFoundException;
 import com.timcritt.tfg.application.port.inbound.EmailVerificationUseCase;
 import com.timcritt.tfg.application.port.outbound.UserEventPublisherPort;
 import com.timcritt.tfg.application.port.outbound.UserRepositoryPort;
+import com.timcritt.tfg.domain.event.UserProfileUpdatedEvent;
 import com.timcritt.tfg.domain.model.Role;
 import com.timcritt.tfg.domain.model.aggregate.user.PasswordHash;
 import com.timcritt.tfg.domain.model.aggregate.user.User;
@@ -578,6 +579,126 @@ class UserUseCaseServiceTest {
 
         // Same email, so no new verification should be sent.
         verifyNoInteractions(emailVerificationService);
+    }
+
+    @Test
+    void updateUserShouldPublishProfileUpdatedEventWhenNameChanges() {
+        User existing = User.rehydrate(
+                1L,
+                3L,
+                "tim",
+                "Tim",
+                "Crittenden",
+                "tim@example.com",
+                Set.of(Role.STUDENT),
+                PasswordHash.of("hash"),
+                true
+        );
+
+        when(repository.findById(1L))
+                .thenReturn(Optional.of(existing));
+
+        when(repository.findByUsername("tim"))
+                .thenReturn(Optional.of(existing));
+
+        when(repository.findByEmail("tim@example.com"))
+                .thenReturn(Optional.of(existing));
+
+        when(repository.save(any(User.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        User updated = service.updateUser(
+                1L,
+                "tim",
+                "Timothy",
+                "Crittenden",
+                "tim@example.com"
+        );
+
+        verify(userEventPublisher).publishUserProfileUpdated(
+                new UserProfileUpdatedEvent(
+                        1L,
+                        updated.getVersion(),
+                        "Timothy",
+                        "Crittenden"
+                )
+        );
+    }
+
+    @Test
+    void updateUserShouldNotPublishProfileUpdatedEventWhenOnlyUsernameChanges() {
+        User existing = User.rehydrate(
+                1L,
+                3L,
+                "tim",
+                "Tim",
+                "Crittenden",
+                "tim@example.com",
+                Set.of(Role.STUDENT),
+                PasswordHash.of("hash"),
+                true
+        );
+
+        when(repository.findById(1L))
+                .thenReturn(Optional.of(existing));
+
+        when(repository.findByUsername("new-tim"))
+                .thenReturn(Optional.empty());
+
+        when(repository.findByEmail("tim@example.com"))
+                .thenReturn(Optional.of(existing));
+
+        when(repository.save(any(User.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        service.updateUser(
+                1L,
+                "new-tim",
+                "Tim",
+                "Crittenden",
+                "tim@example.com"
+        );
+
+        verify(userEventPublisher, never())
+                .publishUserProfileUpdated(any());
+    }
+
+    @Test
+    void updateUserShouldNotPublishProfileUpdatedEventWhenOnlyEmailChanges() {
+        User existing = User.rehydrate(
+                1L,
+                3L,
+                "tim",
+                "Tim",
+                "Crittenden",
+                "tim@example.com",
+                Set.of(Role.STUDENT),
+                PasswordHash.of("hash"),
+                true
+        );
+
+        when(repository.findById(1L))
+                .thenReturn(Optional.of(existing));
+
+        when(repository.findByUsername("tim"))
+                .thenReturn(Optional.of(existing));
+
+        when(repository.findByEmail("new@example.com"))
+                .thenReturn(Optional.empty());
+
+        when(repository.save(any(User.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        service.updateUser(
+                1L,
+                "tim",
+                "Tim",
+                "Crittenden",
+                "new@example.com"
+        );
+
+        verify(userEventPublisher, never())
+                .publishUserProfileUpdated(any());
     }
 
     private User createStudent(Long id) {
