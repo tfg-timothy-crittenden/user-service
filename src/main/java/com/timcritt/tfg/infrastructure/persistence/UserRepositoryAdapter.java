@@ -45,35 +45,31 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
         return jpaRepository.findByEmail(email).map(UserEntityMapper::toDomain);
     }
 
-    @Override
     @Transactional
+    @Override
     public User save(User user) {
-        //TODO: is this still needed after we have refactored and remove RoleType and instead just use Lists of Role enums?
-        // If this is an existing user, update the managed entity to avoid creating detached instances
-        if (user.getId() != null) {
-            Optional<UserJpaEntity> existing = jpaRepository.findById(user.getId());
-            if (existing.isPresent()) {
-                UserJpaEntity managed = existing.get();
-                // update simple fields
-                managed.setUsername(user.getUsername());
-                managed.setName(user.getName());
-                managed.setSurname(user.getSurname());
-                managed.setEmail(user.getEmail());
-                managed.setPasswordHash(user.getPasswordHash().value());
-                managed.setVerified(user.isVerified());
-                managed.getUserRoles().clear();
-                managed.getUserRoles().addAll(user.getRoles());
-
-                UserJpaEntity saved = jpaRepository.save(managed);
-                return UserEntityMapper.toDomain(saved);
-            }
+        if (user.getId() == null) {
+            UserJpaEntity entity = UserEntityMapper.toEntity(user);
+            UserJpaEntity persisted = jpaRepository.save(entity);
+            return UserEntityMapper.toDomain(persisted);
         }
 
+        UserJpaEntity managed = jpaRepository.findById(user.getId())
+                .orElseThrow(() -> new IllegalStateException(
+                        "Cannot update user " + user.getId() + ": user does not exist"
+                ));
 
-        // New user path (no existing id / not found): create new entity as before
-        UserJpaEntity entity = UserEntityMapper.toEntity(user);
-        UserJpaEntity saved = jpaRepository.save(entity);
-        return UserEntityMapper.toDomain(saved);
+        managed.setUsername(user.getUsername());
+        managed.setName(user.getName());
+        managed.setSurname(user.getSurname());
+        managed.setEmail(user.getEmail());
+        managed.setPasswordHash(user.getPasswordHash().value());
+        managed.setVerified(user.isVerified());
+
+        managed.getUserRoles().clear();
+        managed.getUserRoles().addAll(user.getRoles());
+
+        return UserEntityMapper.toDomain(managed);
     }
 
     @Override

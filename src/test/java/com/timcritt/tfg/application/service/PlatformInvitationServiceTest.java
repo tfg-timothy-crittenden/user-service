@@ -1,4 +1,4 @@
-package com.timcritt.tfg.application;
+package com.timcritt.tfg.application.service;
 
 import com.timcritt.tfg.application.exception.AlreadyHasRoleException;
 import com.timcritt.tfg.application.exception.InvitationExpiredException;
@@ -9,8 +9,6 @@ import com.timcritt.tfg.application.port.outbound.PlatformInvitationRepositoryPo
 import com.timcritt.tfg.application.port.outbound.TokenGeneratorPort;
 import com.timcritt.tfg.application.port.outbound.TokenHasherPort;
 import com.timcritt.tfg.application.port.outbound.UserRepositoryPort;
-import com.timcritt.tfg.application.service.BatchDeleteResult;
-import com.timcritt.tfg.application.service.PlatformInvitationService;
 import com.timcritt.tfg.domain.model.Role;
 import com.timcritt.tfg.domain.model.aggregate.platformInvitation.PlatformInvitation;
 import com.timcritt.tfg.domain.model.aggregate.platformInvitation.PlatformInvitationStatus;

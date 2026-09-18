@@ -60,30 +60,23 @@ public class EmailVerificationService {
     }
 
     public void confirmToken(String token) {
-        EmailVerificationToken ev = tokenRepository.findByToken(token).orElseThrow(() -> new IllegalArgumentException("Invalid token"));
+        EmailVerificationToken ev = tokenRepository.findByToken(token)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid token"));
 
-        if (ev.isExpiredAt(Instant.now())) {
+        Instant now = Instant.now();
+
+        if (ev.isExpiredAt(now)) {
             throw new IllegalStateException("Token expired");
         }
 
-        // mark token confirmed
-        ev.confirmAt(Instant.now());
+        ev.confirmAt(now);
         tokenRepository.save(ev);
 
-        // mark user verified
-        if (ev.getUserId() != null) {
-            User user = userRepository.findById(ev.getUserId()).orElse(null);
-            if (user != null && !user.isVerified()) {
-                user.confirmEmail();
-                userRepository.save(user);
-            }
-        } else if (ev.getUserEmail() != null) {
-            userRepository.findByEmail(ev.getUserEmail()).ifPresent(u -> {
-                if (!u.isVerified()) {
-                    u.confirmEmail();
-                    userRepository.save(u);
-                }
-            });
-        }
+        userRepository.findById(ev.getUserId())
+                .filter(user -> !user.isVerified())
+                .ifPresent(user -> {
+                    user.confirmEmail();
+                    userRepository.save(user);
+                });
     }
 }
