@@ -1163,6 +1163,7 @@ class PlatformInvitationServiceTest {
     ) {
         return User.rehydrate(
                 100L,
+                0L,
                 "existing-user",
                 "Existing",
                 "User",

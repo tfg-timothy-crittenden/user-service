@@ -2,7 +2,7 @@ package com.timcritt.tfg.infrastructure.service;
 
 import com.timcritt.tfg.application.port.inbound.EmailVerificationUseCase;
 import com.timcritt.tfg.application.port.inbound.UserUseCase;
-import com.timcritt.tfg.application.port.outbound.RoleEventPublisherPort;
+import com.timcritt.tfg.application.port.outbound.UserEventPublisherPort;
 import com.timcritt.tfg.application.port.outbound.UserRepositoryPort;
 import com.timcritt.tfg.application.service.UserUseCaseService;
 import com.timcritt.tfg.domain.event.TeacherRoleRevokedEvent;
@@ -18,33 +18,51 @@ import java.util.Optional;
 public class UserServiceAdapter implements UserUseCase {
 
     private final UserUseCaseService delegate;
-    private final RoleEventPublisherPort roleEventPublisher;
+    private final UserEventPublisherPort userEventPublisher;
     private final EmailVerificationUseCase emailVerificationUseCase;
 
     public UserServiceAdapter(
             UserRepositoryPort repository,
             EmailVerificationUseCase emailVerificationUseCase,
-            RoleEventPublisherPort roleEventPublisher
+            UserEventPublisherPort userEventPublisher
     ) {
         this.delegate = new UserUseCaseService(
                 repository,
-                emailVerificationUseCase
+                emailVerificationUseCase,
+                userEventPublisher
         );
 
         this.emailVerificationUseCase = emailVerificationUseCase;
-        this.roleEventPublisher = roleEventPublisher;
+        this.userEventPublisher = userEventPublisher;
     }
 
     @Override
     @Transactional
-    public User createUser(String username, String name, String surname, String email, String passwordHash) {
-        User saved = delegate.createUser(username, name, surname, email, passwordHash);
-        emailVerificationUseCase.createAndSendToken(saved.getId(), saved.getEmail());
+    public User createUser(
+            String username,
+            String name,
+            String surname,
+            String email,
+            String password
+    ) {
+        User saved = delegate.createUser(
+                username,
+                name,
+                surname,
+                email,
+                password
+        );
+
+        emailVerificationUseCase.createAndSendToken(
+                saved.getId(),
+                saved.getEmail()
+        );
+
         return saved;
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public User getUserByUsername(String username) {
         return delegate.getUserByUsername(username);
     }
@@ -56,14 +74,27 @@ public class UserServiceAdapter implements UserUseCase {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<User> findByIdentifier(String usernameOrEmail) {
         return delegate.findByIdentifier(usernameOrEmail);
     }
 
     @Override
     @Transactional
-    public User updateUser(Long id, String username, String name, String surname, String email) {
-        return delegate.updateUser(id, username, name, surname, email);
+    public User updateUser(
+            Long id,
+            String username,
+            String name,
+            String surname,
+            String email
+    ) {
+        return delegate.updateUser(
+                id,
+                username,
+                name,
+                surname,
+                email
+        );
     }
 
     @Override
@@ -73,7 +104,7 @@ public class UserServiceAdapter implements UserUseCase {
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public List<User> getAllUsersByRole(Role role) {
         return delegate.getAllUsersByRole(role);
     }
@@ -82,9 +113,13 @@ public class UserServiceAdapter implements UserUseCase {
     @Transactional
     public User removeRole(Long userId, Role role) {
         User user = delegate.removeRole(userId, role);
+
         if (role == Role.TEACHER) {
-            roleEventPublisher.publishTeacherRoleRevoked(new TeacherRoleRevokedEvent(userId));
+            userEventPublisher.publishTeacherRoleRevoked(
+                    new TeacherRoleRevokedEvent(userId)
+            );
         }
+
         return user;
     }
 }

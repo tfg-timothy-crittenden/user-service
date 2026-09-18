@@ -4,6 +4,7 @@ import com.timcritt.tfg.application.exception.RoleNotFoundException;
 import com.timcritt.tfg.application.exception.UserAlreadyExistsException;
 import com.timcritt.tfg.application.exception.UserNotFoundException;
 import com.timcritt.tfg.application.port.inbound.EmailVerificationUseCase;
+import com.timcritt.tfg.application.port.outbound.UserEventPublisherPort;
 import com.timcritt.tfg.application.port.outbound.UserRepositoryPort;
 import com.timcritt.tfg.domain.model.Role;
 import com.timcritt.tfg.domain.model.aggregate.user.PasswordHash;
@@ -31,6 +32,9 @@ class UserUseCaseServiceTest {
     @Mock
     private EmailVerificationUseCase emailVerificationService;
 
+    @Mock
+    private UserEventPublisherPort userEventPublisher;
+
     private UserUseCaseService service;
 
     private final PasswordHash passwordHash =
@@ -40,7 +44,8 @@ class UserUseCaseServiceTest {
     void setUp() {
         service = new UserUseCaseService(
                 repository,
-                emailVerificationService
+                emailVerificationService,
+                userEventPublisher
         );
     }
 
@@ -395,6 +400,7 @@ class UserUseCaseServiceTest {
     void shouldRemoveRoleFromUser() {
         User user = User.rehydrate(
                 1L,
+                0L,
                 "timcritt",
                 "Tim",
                 "Crittenden",
@@ -466,6 +472,7 @@ class UserUseCaseServiceTest {
 
         User otherUser = User.rehydrate(
                 2L,
+                0L,
                 "taken",
                 "Other",
                 "User",
@@ -503,6 +510,7 @@ class UserUseCaseServiceTest {
 
         User otherUser = User.rehydrate(
                 2L,
+                0L,
                 "other",
                 "Other",
                 "User",
@@ -575,6 +583,7 @@ class UserUseCaseServiceTest {
     private User createStudent(Long id) {
         return User.rehydrate(
                 id,
+                0L,
                 "timcritt",
                 "Tim",
                 "Crittenden",
@@ -588,6 +597,7 @@ class UserUseCaseServiceTest {
     private User createVerifiedStudent(Long id) {
         return User.rehydrate(
                 id,
+                0L,
                 "timcritt",
                 "Tim",
                 "Crittenden",

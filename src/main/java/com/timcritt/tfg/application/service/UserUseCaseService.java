@@ -4,8 +4,9 @@ import com.timcritt.tfg.application.exception.RoleNotFoundException;
 import com.timcritt.tfg.application.exception.UserNotFoundException;
 import com.timcritt.tfg.application.port.inbound.EmailVerificationUseCase;
 import com.timcritt.tfg.application.port.inbound.UserUseCase;
-import com.timcritt.tfg.application.port.outbound.EmailVerificationTokenRepositoryPort;
+import com.timcritt.tfg.application.port.outbound.UserEventPublisherPort;
 import com.timcritt.tfg.application.port.outbound.UserRepositoryPort;
+import com.timcritt.tfg.domain.event.UserProfileUpdatedEvent;
 import com.timcritt.tfg.domain.model.Role;
 import com.timcritt.tfg.application.exception.UserAlreadyExistsException;
 import com.timcritt.tfg.domain.model.aggregate.user.PasswordHash;
@@ -18,10 +19,12 @@ public class UserUseCaseService implements UserUseCase {
 
     private final UserRepositoryPort repository;
     private final EmailVerificationUseCase emailVerificationService;
+    private final UserEventPublisherPort userEventPublisher;
 
-    public UserUseCaseService(UserRepositoryPort repository, EmailVerificationUseCase emailVerificationService) {
+    public UserUseCaseService(UserRepositoryPort repository, EmailVerificationUseCase emailVerificationService, UserEventPublisherPort userEventPublisher) {
         this.repository = repository;
         this.emailVerificationService = emailVerificationService;
+        this.userEventPublisher = userEventPublisher;
 
     }
 
@@ -71,11 +74,20 @@ public class UserUseCaseService implements UserUseCase {
                     );
                 });
 
-        existingUser.updateProfile(name, surname);
+        existingUser.updateProfile(username, name, surname);
         existingUser.changeEmail(email);
-        existingUser.updateUsername(username);
+
 
         User updated = repository.save(existingUser);
+
+        userEventPublisher.publishUserProfileUpdated(
+                new UserProfileUpdatedEvent(
+                        updated.getId(),
+                        updated.getVersion(),
+                        updated.getName(),
+                        updated.getSurname()
+                )
+        );
 
         if (emailChanged) {
             emailVerificationService.createAndSendToken(

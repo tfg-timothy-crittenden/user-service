@@ -19,6 +19,10 @@ public class UserJpaEntity {
     private Long id;
 
     @Getter @Setter
+    @Column(nullable = false)
+    private Long version;
+
+    @Getter @Setter
     private String username;
     @Getter @Setter
     private String name;
@@ -54,4 +58,6 @@ public class UserJpaEntity {
     public void setUserRoles(Set<Role> roles) {
         this.roles = (roles == null) ? new HashSet<>() : new HashSet<>(roles);
     }
+
+
 }

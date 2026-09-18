@@ -59,6 +59,7 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
                         "Cannot update user " + user.getId() + ": user does not exist"
                 ));
 
+        managed.setVersion(user.getVersion());
         managed.setUsername(user.getUsername());
         managed.setName(user.getName());
         managed.setSurname(user.getSurname());

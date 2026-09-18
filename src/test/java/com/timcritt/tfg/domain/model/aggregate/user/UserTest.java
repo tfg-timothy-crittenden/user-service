@@ -139,6 +139,7 @@ public class UserTest {
                 IllegalArgumentException.class,
                 () -> User.rehydrate(
                         1L,
+                        0L,
                         null,
                         "Tim",
                         "Crittenden",
@@ -153,6 +154,7 @@ public class UserTest {
                 IllegalArgumentException.class,
                 () -> User.rehydrate(
                         1L,
+                        0L,
                         "tim",
                         null,
                         "Crittenden",
@@ -167,6 +169,7 @@ public class UserTest {
                 IllegalArgumentException.class,
                 () -> User.rehydrate(
                         1L,
+                        0L,
                         "tim",
                         "Tim",
                         null,
@@ -181,6 +184,7 @@ public class UserTest {
                 IllegalArgumentException.class,
                 () -> User.rehydrate(
                         1L,
+                        0L,
                         "tim",
                         "Tim",
                         "Crittenden",
@@ -195,6 +199,7 @@ public class UserTest {
                 IllegalArgumentException.class,
                 () -> User.rehydrate(
                         1L,
+                        0L,
                         "tim",
                         "Tim",
                         "Crittenden",
@@ -209,6 +214,7 @@ public class UserTest {
                 NullPointerException.class,
                 () -> User.rehydrate(
                         1L,
+                        0L,
                         "tim",
                         "Tim",
                         "Crittenden",
@@ -229,6 +235,7 @@ public class UserTest {
                 IllegalArgumentException.class,
                 () -> User.rehydrate(
                         1L,
+                        0L,
                         "tim",
                         "Tim",
                         "Crittenden",
@@ -245,6 +252,7 @@ public class UserTest {
                 IllegalArgumentException.class,
                 () -> User.rehydrate(
                         1L,
+                        0L,
                         "tim",
                         "Tim",
                         "Crittenden",
@@ -261,22 +269,30 @@ public class UserTest {
     @Test
     void updateProfileShouldNotAllowNullOrBlankParameters() {
         User user = createValidStudent();
-        assertThrows(IllegalArgumentException.class, () -> user.updateProfile(null, "Bob"));
-        assertThrows(IllegalArgumentException.class, () -> user.updateProfile("", "Bob"));
-        assertThrows(IllegalArgumentException.class, () -> user.updateProfile(" ", "Bob"));
-        assertThrows(IllegalArgumentException.class, () -> user.updateProfile("Fluffy", null));
-        assertThrows(IllegalArgumentException.class, () -> user.updateProfile("Fluffy", ""));
-        assertThrows(IllegalArgumentException.class, () -> user.updateProfile("Fluffy", " "));
 
-    }
-    @Test
-    void updateProfileShouldUpdateNameAndSurname() {
-        User user = createValidStudent();
+        // username
+        assertThrows(IllegalArgumentException.class,
+                () -> user.updateProfile(null, "Bob", "Smith"));
+        assertThrows(IllegalArgumentException.class,
+                () -> user.updateProfile("", "Bob", "Smith"));
+        assertThrows(IllegalArgumentException.class,
+                () -> user.updateProfile(" ", "Bob", "Smith"));
 
-        user.updateProfile("Fluffy", "Crittenden");
+        // name
+        assertThrows(IllegalArgumentException.class,
+                () -> user.updateProfile("bob", null, "Smith"));
+        assertThrows(IllegalArgumentException.class,
+                () -> user.updateProfile("bob", "", "Smith"));
+        assertThrows(IllegalArgumentException.class,
+                () -> user.updateProfile("bob", " ", "Smith"));
 
-        assertEquals("Fluffy", user.getName());
-        assertEquals("Crittenden", user.getSurname());
+        // surname
+        assertThrows(IllegalArgumentException.class,
+                () -> user.updateProfile("bob", "Bob", null));
+        assertThrows(IllegalArgumentException.class,
+                () -> user.updateProfile("bob", "Bob", ""));
+        assertThrows(IllegalArgumentException.class,
+                () -> user.updateProfile("bob", "Bob", " "));
     }
 
     @Test
@@ -323,18 +339,18 @@ public class UserTest {
     }
 
     @Test
-    void updateUsernameShouldNotAllowNullOrBlankParameters() {
+    void updateProfileShouldUpdateUsernameNameAndSurname() {
         User user = createValidStudent();
-        assertThrows(IllegalArgumentException.class, () -> user.updateUsername(null));
-    }
 
-    @Test
-    void updateUsernameShouldUpdateUsername() {
-        User user = createValidStudent();
-        String newUsername = "fluffy";
-        assertNotEquals(newUsername, user.getUsername());
-        user.updateUsername(newUsername);
-        assertEquals(newUsername, user.getUsername());
+        user.updateProfile(
+                "fluffy",
+                "Fluffy",
+                "Crittenden"
+        );
+
+        assertEquals("fluffy", user.getUsername());
+        assertEquals("Fluffy", user.getName());
+        assertEquals("Crittenden", user.getSurname());
     }
 
     @Test
@@ -385,7 +401,7 @@ public class UserTest {
     void revokeRoleShouldRemoveRole() {
         User user = createValidStudent();
         Role role = Role.TEACHER;
-        // Add a second role first because the final remaining role cannot be revoked
+        // Add a second role first because the final remaining role cannot be revoked as per domain rules
         user.grantRole(role);
         assertTrue(user.hasRole(role));
         user.revokeRole(role);
@@ -438,6 +454,7 @@ public class UserTest {
     void usersWithSameIdShouldBeEqual(){
         User user1 = User.rehydrate(
                 1L,
+                0L,
                 "tim",
                 "Tim",
                 "Crittenden",
@@ -449,6 +466,7 @@ public class UserTest {
 
         User user2 = User.rehydrate(
                 1L,
+                0L,
                 "differentUsername",
                 "Bob",
                 "Smith",
@@ -464,6 +482,7 @@ public class UserTest {
     void usersWithDifferentIdsShouldNotBeEqual() {
         User user1 = User.rehydrate(
                 1L,
+                0L,
                 "tim",
                 "Tim",
                 "Crittenden",
@@ -475,6 +494,7 @@ public class UserTest {
 
         User user2 = User.rehydrate(
                 2L,
+                0L,
                 "tim",
                 "Tim",
                 "Crittenden",
@@ -526,6 +546,7 @@ public class UserTest {
     void equalUsersShouldHaveSameHashCode() {
         User user1 = User.rehydrate(
                 1L,
+                0L,
                 "tim",
                 "Tim",
                 "Crittenden",
@@ -537,6 +558,7 @@ public class UserTest {
 
         User user2 = User.rehydrate(
                 1L,
+                0L,
                 "bob",
                 "Bob",
                 "Smith",
@@ -548,6 +570,92 @@ public class UserTest {
 
         assertEquals(user1, user2);
         assertEquals(user1.hashCode(), user2.hashCode());
+    }
+
+    @Test
+    void newUserShouldStartAtVersionZero() {
+        User user = createValidStudent();
+
+        assertEquals(0L, user.getVersion());
+    }
+
+    @Test
+    void updateProfileShouldIncrementVersionWhenProfileChanges() {
+        User user = createValidStudent();
+
+        long initialVersion = user.getVersion();
+
+        user.updateProfile(
+                "fluffy",
+                "Fluffy",
+                "Crittenden"
+        );
+
+        assertEquals(initialVersion + 1, user.getVersion());
+    }
+
+    @Test
+    void updateProfileShouldNotIncrementVersionWhenNothingChanges() {
+        User user = createValidStudent();
+
+        long initialVersion = user.getVersion();
+
+        user.updateProfile(
+                user.getUsername(),
+                user.getName(),
+                user.getSurname()
+        );
+
+        assertEquals(initialVersion, user.getVersion());
+    }
+
+    @Test
+    void grantRoleShouldIncrementVersion() {
+        User user = createValidStudent();
+
+        long version = user.getVersion();
+
+        user.grantRole(Role.TEACHER);
+
+        assertEquals(version + 1, user.getVersion());
+    }
+
+    @Test
+    void revokeRoleShouldIncrementVersion() {
+        User user = createValidStudent();
+        user.grantRole(Role.TEACHER);
+
+        long version = user.getVersion();
+
+        user.revokeRole(Role.TEACHER);
+
+        assertEquals(version + 1, user.getVersion());
+    }
+
+    @Test
+    void confirmEmailShouldIncrementVersionOnlyOnce() {
+        User user = createValidStudent();
+
+        long version = user.getVersion();
+
+        user.confirmEmail();
+
+        assertEquals(version + 1, user.getVersion());
+
+        user.confirmEmail();
+
+        assertEquals(version + 1, user.getVersion());
+    }
+
+    @Test
+    void changePasswordShouldIncrementVersion() {
+        User user = createValidStudent();
+
+        long version = user.getVersion();
+
+        user.changePassword(PasswordHash.of("different-hash"));
+
+        assertEquals(version + 1, user.getVersion());
     }
 
 

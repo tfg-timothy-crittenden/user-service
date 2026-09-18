@@ -407,6 +407,7 @@ class PasswordResetServiceTest {
     private User createUser(boolean verified) {
         return User.rehydrate(
                 1L,
+                0L,
                 "timcritt",
                 "Tim",
                 "Crittenden",

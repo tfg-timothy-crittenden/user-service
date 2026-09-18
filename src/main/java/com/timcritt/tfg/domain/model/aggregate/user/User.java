@@ -11,6 +11,8 @@ import com.timcritt.tfg.domain.model.Role;
 public class User {
 
     private Long id;
+    private long version;
+
     private String username;
     private String name;
     private String surname;
@@ -19,23 +21,40 @@ public class User {
     private Set<Role> roles = new HashSet<>();
     private boolean verified = false;
 
-    private User(Long id, String username, String name, String surname, String email, Set<Role> roles, PasswordHash passwordHash, boolean verified) {
-
+    private User(
+            Long id,
+            long version,
+            String username,
+            String name,
+            String surname,
+            String email,
+            Set<Role> roles,
+            PasswordHash passwordHash,
+            boolean verified
+    ) {
         requireNonBlank(username, "username");
         requireNonBlank(name, "name");
         requireNonBlank(surname, "surname");
         requireNonBlank(email, "email");
 
+        if (version < 0) {
+            throw new IllegalArgumentException("version cannot be negative");
+        }
+
         if (passwordHash == null) {
             throw new NullPointerException("passwordHash cannot be null");
         }
 
-        if (roles == null || roles.isEmpty() || roles.stream().anyMatch(Objects::isNull)) {
+        if (roles == null
+                || roles.isEmpty()
+                || roles.stream().anyMatch(Objects::isNull)) {
             throw new IllegalArgumentException(
-                    "user must have at least one valid role");
+                    "user must have at least one valid role"
+            );
         }
 
         this.id = id;
+        this.version = version;
         this.username = username;
         this.name = name;
         this.surname = surname;
@@ -49,31 +68,51 @@ public class User {
 
         Set<Role> roles = new HashSet<>();
         roles.add(Role.STUDENT);
-        return new User(null, username, name, surname, email, roles, passwordHash, false);
+        long version = 0L;
+        return new User(null, version, username, name, surname, email, roles, passwordHash, false);
     }
 
     public static User createFromInvitation(String username, String name, String surname, String email, PasswordHash passwordHash, Role roleToGrant) {
         Set<Role> roles = new HashSet<>();
         roles.add(roleToGrant);
-        return new User(null, username, name, surname, email, roles, passwordHash, true);
+        long version = 0L;
+        return new User(null, version, username, name, surname, email, roles, passwordHash, true);
     }
 
-    public static User rehydrate(Long id, String username, String name, String surname, String email, Set<Role> roles, PasswordHash passwordHash, boolean verified) {
-        return new User(id, username, name, surname, email, roles, passwordHash, verified);
+    public static User rehydrate(Long id, Long version, String username, String name, String surname, String email, Set<Role> roles, PasswordHash passwordHash, boolean verified) {
+        return new User(id, version, username, name, surname, email, roles, passwordHash, verified);
     }
 
     //######################################################## BUSINESS LOGIC #########################################
-
-    public void updateProfile(String name, String surname) {
+    public void updateProfile(
+            String username,
+            String name,
+            String surname
+    ) {
+        requireNonBlank(username, "username");
         requireNonBlank(name, "name");
         requireNonBlank(surname, "surname");
-        this.name = name;
-        this.surname = surname;
-    }
 
-    public void updateUsername(String username) {
-        requireNonBlank(username, "username");
-        this.username = username;
+        boolean changed = false;
+
+        if (!Objects.equals(this.username, username)) {
+            this.username = username;
+            changed = true;
+        }
+
+        if (!Objects.equals(this.name, name)) {
+            this.name = name;
+            changed = true;
+        }
+
+        if (!Objects.equals(this.surname, surname)) {
+            this.surname = surname;
+            changed = true;
+        }
+
+        if (changed) {
+            incrementVersion();
+        }
     }
 
     public void changeEmail(String newEmail) {
@@ -86,10 +125,16 @@ public class User {
 
         this.email = newEmail;
         this.verified = false;
+        incrementVersion();
     }
 
     public void confirmEmail() {
+        if (verified) {
+            return;
+        }
+
         this.verified = true;
+        incrementVersion();
     }
 
     public void grantRole(Role role) {
@@ -101,6 +146,13 @@ public class User {
             throw new IllegalArgumentException("Role already assigned");
         }
         roles.add(role);
+        //All teachers should also have the student role as default, so new users being invited as teachers must be given the
+        // Student role explicitly
+        if (role == Role.TEACHER) {
+            roles.add(Role.STUDENT);
+        }
+
+        incrementVersion();
     }
 
     public void revokeRole(Role role) {
@@ -116,6 +168,7 @@ public class User {
         }
 
         roles.remove(role);
+        incrementVersion();
     }
 
     public boolean hasRole(Role role) {
@@ -130,13 +183,21 @@ public class User {
             throw new NullPointerException("passwordHash cannot be null");
         }
         this.passwordHash = passwordHash;
+        incrementVersion();
     }
+
+    private void incrementVersion() {
+        version++;
+    }
+
+
     public boolean isVerified() { return verified; }
 
     //######################################## GETTERS #############################################################
 
     public PasswordHash getPasswordHash() { return passwordHash;}
     public Long getId() { return id; }
+    public Long getVersion() { return version; };
     public String getUsername() { return username; }
     public String getName() { return name; }
     public String getSurname() { return surname; }

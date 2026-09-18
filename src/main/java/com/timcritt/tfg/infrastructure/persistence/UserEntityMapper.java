@@ -16,6 +16,7 @@ public class UserEntityMapper {
 
         return User.rehydrate(
                 entity.getId(),
+                entity.getVersion(),
                 entity.getUsername(),
                 entity.getName(),
                 entity.getSurname(),
@@ -31,6 +32,7 @@ public class UserEntityMapper {
 
         UserJpaEntity entity = new UserJpaEntity();
         entity.setId(domain.getId());
+        entity.setVersion(domain.getVersion());
         entity.setUsername(domain.getUsername());
         entity.setName(domain.getName());
         entity.setSurname(domain.getSurname());

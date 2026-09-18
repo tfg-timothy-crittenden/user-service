@@ -63,7 +63,7 @@ class UserRepositoryAdapterIT {
     void shouldPersistProfileChangesToExistingUser() {
         User saved = repository.save(createValidStudent());
 
-        saved.updateProfile("Fluffy", "Bob");
+        saved.updateProfile("fluff", "Fluffy", "Bob");
 
         repository.save(saved);
 
@@ -77,25 +77,10 @@ class UserRepositoryAdapterIT {
     }
 
     @Test
-    void shouldPersistUsernameChangeToExistingUser() {
-        User saved = repository.save(createValidStudent());
-
-        saved.updateUsername("newUsername");
-
-        repository.save(saved);
-
-        flushAndClear();
-
-        User reloaded = repository.findById(saved.getId())
-                .orElseThrow();
-
-        assertEquals("newUsername", reloaded.getUsername());
-    }
-
-    @Test
     void shouldPersistEmailChangeAndResetVerification() {
         User user = User.rehydrate(
                 null,
+                0L,
                 username,
                 name,
                 surname,
@@ -274,6 +259,7 @@ class UserRepositoryAdapterIT {
     void shouldNotCreateUserWhenSavingUnknownExistingId() {
         User user = User.rehydrate(
                 999999L,
+                0L,
                 username,
                 name,
                 surname,

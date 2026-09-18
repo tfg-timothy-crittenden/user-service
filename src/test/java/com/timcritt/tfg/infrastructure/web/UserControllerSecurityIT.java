@@ -73,6 +73,7 @@ class UserControllerSecurityIT {
     void getTeachers_asAdmin_returnsOk() throws Exception {
         User teacher = User.rehydrate(
                 1L,
+                0L,
                 "t1",
                 "T",
                 "One",
@@ -108,6 +109,7 @@ class UserControllerSecurityIT {
     void patchUser_authenticated_returnsOk() throws Exception {
         User updated = User.rehydrate(
                 2L,
+                0L,
                 "alice",
                 "Alice",
                 "A",
