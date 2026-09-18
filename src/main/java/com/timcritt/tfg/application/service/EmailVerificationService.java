@@ -1,5 +1,6 @@
 package com.timcritt.tfg.application.service;
 
+import com.timcritt.tfg.application.port.inbound.EmailVerificationUseCase;
 import com.timcritt.tfg.application.port.outbound.EmailSenderPort;
 import com.timcritt.tfg.application.port.outbound.EmailVerificationTokenRepositoryPort;
 import com.timcritt.tfg.application.port.outbound.UserRepositoryPort;
@@ -9,7 +10,7 @@ import com.timcritt.tfg.domain.model.aggregate.user.User;
 import java.time.Instant;
 import java.util.UUID;
 
-public class EmailVerificationService {
+public class EmailVerificationService implements EmailVerificationUseCase {
 
     private final EmailVerificationTokenRepositoryPort tokenRepository;
     private final EmailSenderPort emailSender;

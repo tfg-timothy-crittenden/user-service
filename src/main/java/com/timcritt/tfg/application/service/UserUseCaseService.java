@@ -2,7 +2,9 @@ package com.timcritt.tfg.application.service;
 
 import com.timcritt.tfg.application.exception.RoleNotFoundException;
 import com.timcritt.tfg.application.exception.UserNotFoundException;
+import com.timcritt.tfg.application.port.inbound.EmailVerificationUseCase;
 import com.timcritt.tfg.application.port.inbound.UserUseCase;
+import com.timcritt.tfg.application.port.outbound.EmailVerificationTokenRepositoryPort;
 import com.timcritt.tfg.application.port.outbound.UserRepositoryPort;
 import com.timcritt.tfg.domain.model.Role;
 import com.timcritt.tfg.application.exception.UserAlreadyExistsException;
@@ -15,9 +17,12 @@ import java.util.Optional;
 public class UserUseCaseService implements UserUseCase {
 
     private final UserRepositoryPort repository;
+    private final EmailVerificationUseCase emailVerificationService;
 
-    public UserUseCaseService(UserRepositoryPort repository) {
+    public UserUseCaseService(UserRepositoryPort repository, EmailVerificationUseCase emailVerificationService) {
         this.repository = repository;
+        this.emailVerificationService = emailVerificationService;
+
     }
 
 
@@ -42,12 +47,44 @@ public class UserUseCaseService implements UserUseCase {
 
     @Override
     public User updateUser(Long id, String username, String name, String surname, String email) {
-        User existingUser = repository.findById(id).orElseThrow(() -> new UserNotFoundException(id, ""));
+        User existingUser = repository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id, ""));
+
+        boolean emailChanged =
+                !existingUser.getEmail().equalsIgnoreCase(email);
+
+        repository.findByUsername(username)
+                .filter(found -> !found.getId().equals(id))
+                .ifPresent(found -> {
+                    throw new UserAlreadyExistsException(
+                            username,
+                            "username"
+                    );
+                });
+
+        repository.findByEmail(email)
+                .filter(found -> !found.getId().equals(id))
+                .ifPresent(found -> {
+                    throw new UserAlreadyExistsException(
+                            email,
+                            "email"
+                    );
+                });
 
         existingUser.updateProfile(name, surname);
         existingUser.changeEmail(email);
         existingUser.updateUsername(username);
-        return repository.save(existingUser);
+
+        User updated = repository.save(existingUser);
+
+        if (emailChanged) {
+            emailVerificationService.createAndSendToken(
+                    updated.getId(),
+                    updated.getEmail()
+            );
+        }
+
+        return updated;
     }
 
     @Override

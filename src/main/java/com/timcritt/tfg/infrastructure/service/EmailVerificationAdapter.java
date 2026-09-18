@@ -1,5 +1,6 @@
 package com.timcritt.tfg.infrastructure.service;
 
+import com.timcritt.tfg.application.port.inbound.EmailVerificationUseCase;
 import com.timcritt.tfg.application.port.outbound.EmailSenderPort;
 import com.timcritt.tfg.application.port.outbound.EmailVerificationTokenRepositoryPort;
 import com.timcritt.tfg.application.port.outbound.UserRepositoryPort;
@@ -9,7 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class EmailVerificationAdapter {
+public class EmailVerificationAdapter implements EmailVerificationUseCase {
 
     private final EmailVerificationService delegate;
 

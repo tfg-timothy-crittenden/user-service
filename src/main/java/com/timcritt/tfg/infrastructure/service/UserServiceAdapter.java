@@ -1,5 +1,6 @@
 package com.timcritt.tfg.infrastructure.service;
 
+import com.timcritt.tfg.application.port.inbound.EmailVerificationUseCase;
 import com.timcritt.tfg.application.port.inbound.UserUseCase;
 import com.timcritt.tfg.application.port.outbound.RoleEventPublisherPort;
 import com.timcritt.tfg.application.port.outbound.UserRepositoryPort;
@@ -17,14 +18,20 @@ import java.util.Optional;
 public class UserServiceAdapter implements UserUseCase {
 
     private final UserUseCaseService delegate;
-    private final EmailVerificationAdapter emailVerificationFacade;
     private final RoleEventPublisherPort roleEventPublisher;
+    private final EmailVerificationUseCase emailVerificationUseCase;
 
-    public UserServiceAdapter(UserRepositoryPort repository,
-                              EmailVerificationAdapter emailVerificationFacade,
-                              RoleEventPublisherPort roleEventPublisher) {
-        this.delegate = new UserUseCaseService(repository);
-        this.emailVerificationFacade = emailVerificationFacade;
+    public UserServiceAdapter(
+            UserRepositoryPort repository,
+            EmailVerificationUseCase emailVerificationUseCase,
+            RoleEventPublisherPort roleEventPublisher
+    ) {
+        this.delegate = new UserUseCaseService(
+                repository,
+                emailVerificationUseCase
+        );
+
+        this.emailVerificationUseCase = emailVerificationUseCase;
         this.roleEventPublisher = roleEventPublisher;
     }
 
@@ -32,7 +39,7 @@ public class UserServiceAdapter implements UserUseCase {
     @Transactional
     public User createUser(String username, String name, String surname, String email, String passwordHash) {
         User saved = delegate.createUser(username, name, surname, email, passwordHash);
-        emailVerificationFacade.createAndSendToken(saved.getId(), saved.getEmail());
+        emailVerificationUseCase.createAndSendToken(saved.getId(), saved.getEmail());
         return saved;
     }
 

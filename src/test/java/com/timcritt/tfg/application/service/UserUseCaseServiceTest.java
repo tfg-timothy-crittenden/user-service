@@ -3,8 +3,8 @@ package com.timcritt.tfg.application.service;
 import com.timcritt.tfg.application.exception.RoleNotFoundException;
 import com.timcritt.tfg.application.exception.UserAlreadyExistsException;
 import com.timcritt.tfg.application.exception.UserNotFoundException;
+import com.timcritt.tfg.application.port.inbound.EmailVerificationUseCase;
 import com.timcritt.tfg.application.port.outbound.UserRepositoryPort;
-import com.timcritt.tfg.application.service.UserUseCaseService;
 import com.timcritt.tfg.domain.model.Role;
 import com.timcritt.tfg.domain.model.aggregate.user.PasswordHash;
 import com.timcritt.tfg.domain.model.aggregate.user.User;
@@ -28,6 +28,9 @@ class UserUseCaseServiceTest {
     @Mock
     private UserRepositoryPort repository;
 
+    @Mock
+    private EmailVerificationUseCase emailVerificationService;
+
     private UserUseCaseService service;
 
     private final PasswordHash passwordHash =
@@ -35,7 +38,10 @@ class UserUseCaseServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new UserUseCaseService(repository);
+        service = new UserUseCaseService(
+                repository,
+                emailVerificationService
+        );
     }
 
     @Test
@@ -48,6 +54,7 @@ class UserUseCaseServiceTest {
         User result = service.getUserById(1L);
 
         assertEquals(user, result);
+
         verify(repository).findById(1L);
     }
 
@@ -87,7 +94,8 @@ class UserUseCaseServiceTest {
         when(repository.findByEmail("tim@example.com"))
                 .thenReturn(Optional.of(user));
 
-        User result = service.getUserByUsername("tim@example.com");
+        User result =
+                service.getUserByUsername("tim@example.com");
 
         assertEquals(user, result);
 
@@ -234,11 +242,17 @@ class UserUseCaseServiceTest {
     }
 
     @Test
-    void shouldUpdateUser() {
+    void shouldUpdateUserAndSendVerificationWhenEmailChanges() {
         User user = createVerifiedStudent(1L);
 
         when(repository.findById(1L))
                 .thenReturn(Optional.of(user));
+
+        when(repository.findByUsername("newusername"))
+                .thenReturn(Optional.empty());
+
+        when(repository.findByEmail("new@example.com"))
+                .thenReturn(Optional.empty());
 
         when(repository.save(user))
                 .thenReturn(user);
@@ -256,10 +270,50 @@ class UserUseCaseServiceTest {
         assertEquals("Name", result.getSurname());
         assertEquals("new@example.com", result.getEmail());
 
-        // Email change should reset verification
+        // Changing the email means the address must be verified again.
         assertFalse(result.isVerified());
 
         verify(repository).save(user);
+
+        // Because the email changed, a fresh verification token/email
+        // should be created for the new address.
+        verify(emailVerificationService)
+                .createAndSendToken(
+                        1L,
+                        "new@example.com"
+                );
+    }
+
+    @Test
+    void shouldNotSendVerificationWhenEmailDoesNotChange() {
+        User user = createVerifiedStudent(1L);
+
+        when(repository.findById(1L))
+                .thenReturn(Optional.of(user));
+
+        when(repository.findByUsername("newusername"))
+                .thenReturn(Optional.empty());
+
+        when(repository.findByEmail("tim@example.com"))
+                .thenReturn(Optional.of(user));
+
+        when(repository.save(user))
+                .thenReturn(user);
+
+        User result = service.updateUser(
+                1L,
+                "newusername",
+                "New",
+                "Name",
+                "tim@example.com"
+        );
+
+        assertEquals("tim@example.com", result.getEmail());
+        assertTrue(result.isVerified());
+
+        verify(repository).save(user);
+
+        verifyNoInteractions(emailVerificationService);
     }
 
     @Test
@@ -279,6 +333,7 @@ class UserUseCaseServiceTest {
         );
 
         verify(repository, never()).save(any());
+        verifyNoInteractions(emailVerificationService);
     }
 
     @Test
@@ -291,7 +346,8 @@ class UserUseCaseServiceTest {
         when(repository.delete(1L))
                 .thenReturn(true);
 
-        Boolean result = service.deleteUser(1L);
+        Boolean result =
+                service.deleteUser(1L);
 
         assertTrue(result);
 
@@ -329,7 +385,10 @@ class UserUseCaseServiceTest {
                 service.getAllUsersByRole(Role.TEACHER);
 
         assertEquals(1, result.size());
-        assertTrue(result.getFirst().hasRole(Role.TEACHER));
+        assertTrue(
+                result.getFirst()
+                        .hasRole(Role.TEACHER)
+        );
     }
 
     @Test
@@ -340,7 +399,10 @@ class UserUseCaseServiceTest {
                 "Tim",
                 "Crittenden",
                 "tim@example.com",
-                Set.of(Role.STUDENT, Role.TEACHER),
+                Set.of(
+                        Role.STUDENT,
+                        Role.TEACHER
+                ),
                 passwordHash,
                 true
         );
@@ -352,7 +414,10 @@ class UserUseCaseServiceTest {
                 .thenReturn(user);
 
         User result =
-                service.removeRole(1L, Role.TEACHER);
+                service.removeRole(
+                        1L,
+                        Role.TEACHER
+                );
 
         assertTrue(result.hasRole(Role.STUDENT));
         assertFalse(result.hasRole(Role.TEACHER));
@@ -369,7 +434,10 @@ class UserUseCaseServiceTest {
 
         assertThrows(
                 RoleNotFoundException.class,
-                () -> service.removeRole(1L, Role.TEACHER)
+                () -> service.removeRole(
+                        1L,
+                        Role.TEACHER
+                )
         );
 
         verify(repository, never()).save(any());
@@ -382,10 +450,126 @@ class UserUseCaseServiceTest {
 
         assertThrows(
                 UserNotFoundException.class,
-                () -> service.removeRole(1L, Role.TEACHER)
+                () -> service.removeRole(
+                        1L,
+                        Role.TEACHER
+                )
         );
 
         verify(repository, never()).save(any());
+    }
+
+    @Test
+    void shouldRejectUsernameAlreadyUsedByAnotherUser() {
+        User existingUser =
+                createStudent(1L);
+
+        User otherUser = User.rehydrate(
+                2L,
+                "taken",
+                "Other",
+                "User",
+                "other@example.com",
+                Set.of(Role.STUDENT),
+                PasswordHash.of("hash"),
+                true
+        );
+
+        when(repository.findById(1L))
+                .thenReturn(Optional.of(existingUser));
+
+        when(repository.findByUsername("taken"))
+                .thenReturn(Optional.of(otherUser));
+
+        assertThrows(
+                UserAlreadyExistsException.class,
+                () -> service.updateUser(
+                        1L,
+                        "taken",
+                        "Tim",
+                        "Crittenden",
+                        "tim@example.com"
+                )
+        );
+
+        verify(repository, never()).save(any());
+        verifyNoInteractions(emailVerificationService);
+    }
+
+    @Test
+    void shouldRejectEmailAlreadyUsedByAnotherUser() {
+        User existingUser =
+                createStudent(1L);
+
+        User otherUser = User.rehydrate(
+                2L,
+                "other",
+                "Other",
+                "User",
+                "taken@example.com",
+                Set.of(Role.STUDENT),
+                PasswordHash.of("hash"),
+                true
+        );
+
+        when(repository.findById(1L))
+                .thenReturn(Optional.of(existingUser));
+
+        when(repository.findByUsername("timcritt"))
+                .thenReturn(Optional.of(existingUser));
+
+        when(repository.findByEmail("taken@example.com"))
+                .thenReturn(Optional.of(otherUser));
+
+        assertThrows(
+                UserAlreadyExistsException.class,
+                () -> service.updateUser(
+                        1L,
+                        "timcritt",
+                        "Tim",
+                        "Crittenden",
+                        "taken@example.com"
+                )
+        );
+
+        verify(repository, never()).save(any());
+        verifyNoInteractions(emailVerificationService);
+    }
+
+    @Test
+    void shouldAllowKeepingOwnUsernameAndEmail() {
+        User existingUser =
+                createStudent(1L);
+
+        when(repository.findById(1L))
+                .thenReturn(Optional.of(existingUser));
+
+        when(repository.findByUsername("timcritt"))
+                .thenReturn(Optional.of(existingUser));
+
+        when(repository.findByEmail("tim@example.com"))
+                .thenReturn(Optional.of(existingUser));
+
+        when(repository.save(existingUser))
+                .thenReturn(existingUser);
+
+        User result = service.updateUser(
+                1L,
+                "timcritt",
+                "Tim",
+                "Crittenden",
+                "tim@example.com"
+        );
+
+        assertEquals(existingUser, result);
+
+        verify(repository).findById(1L);
+        verify(repository).findByUsername("timcritt");
+        verify(repository).findByEmail("tim@example.com");
+        verify(repository).save(existingUser);
+
+        // Same email, so no new verification should be sent.
+        verifyNoInteractions(emailVerificationService);
     }
 
     private User createStudent(Long id) {
