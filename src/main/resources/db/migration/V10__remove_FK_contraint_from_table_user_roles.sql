@@ -1,0 +1,8 @@
+ALTER TABLE user_roles
+    DROP CONSTRAINT fkhfh9dx7w3ubf1co1vdev94g3f;
+
+ALTER TABLE user_roles
+    ADD CONSTRAINT fk_user_roles_user
+        FOREIGN KEY (user_id)
+            REFERENCES users(id)
+            ON DELETE CASCADE;

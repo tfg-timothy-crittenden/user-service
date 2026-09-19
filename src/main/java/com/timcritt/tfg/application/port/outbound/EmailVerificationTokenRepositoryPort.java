@@ -9,6 +9,7 @@ public interface EmailVerificationTokenRepositoryPort {
     Optional<EmailVerificationToken> findById(Long Id);
     Optional<EmailVerificationToken> findByUserEmail(String token);
     Optional<EmailVerificationToken> findByToken(String token);
+    Optional<EmailVerificationToken> findByUserId(Long userId);
     void save(EmailVerificationToken emailVerificationToken);
     void delete(EmailVerificationToken emailVerificationToken);
 

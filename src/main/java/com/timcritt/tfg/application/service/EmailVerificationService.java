@@ -24,24 +24,46 @@ public class EmailVerificationService implements EmailVerificationUseCase {
         this.verifyUrlTemplate = verifyUrlTemplate;
     }
 
-    public void createAndSendToken(Long userId, String userEmail) {
-        // create token
+    public void createAndSendToken(
+            Long userId,
+            String userEmail
+    ) {
+        tokenRepository.findByUserId(userId)
+                .ifPresent(tokenRepository::delete);
+
         String token = UUID.randomUUID().toString();
         Instant now = Instant.now();
-        EmailVerificationToken ev = EmailVerificationToken.create(userId, userEmail, token, now);
+
+        EmailVerificationToken ev =
+                EmailVerificationToken.create(
+                        userId,
+                        userEmail,
+                        token,
+                        now
+                );
+
         tokenRepository.save(ev);
 
-        // build link using configured frontend URL template. Template should contain "{token}" placeholder.
         String link;
-        if (verifyUrlTemplate != null && verifyUrlTemplate.contains("{token}")) {
+
+        if (verifyUrlTemplate != null
+                && verifyUrlTemplate.contains("{token}")) {
             link = verifyUrlTemplate.replace("{token}", token);
-        } else if (verifyUrlTemplate != null && verifyUrlTemplate.contains("%s")) {
+
+        } else if (verifyUrlTemplate != null
+                && verifyUrlTemplate.contains("%s")) {
             link = String.format(verifyUrlTemplate, token);
+
         } else {
-            // Fallback to previous server-side confirm endpoint
-            link = "http://localhost:8082/api/auth/confirm-email?token=" + token;
+            link =
+                    "http://localhost:8082/api/auth/confirm-email?token="
+                            + token;
         }
-        emailSender.sendVerificationEmail(userEmail, link);
+
+        emailSender.sendVerificationEmail(
+                userEmail,
+                link
+        );
     }
 
     public void resendVerificationEmail(String email) {

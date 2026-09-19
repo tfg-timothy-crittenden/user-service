@@ -22,6 +22,12 @@ public class EmailVerificationTokenRepositoryAdapter implements EmailVerificatio
     }
 
     @Override
+    public Optional<EmailVerificationToken> findByUserId(Long userId) {
+        return jpaRepository.findByUserId(userId)
+                .map(EmailVerificationTokenEntityMapper::toDomain);
+    }
+
+    @Override
     public Optional<EmailVerificationToken> findByUserEmail(String userEmail) {
         return jpaRepository.findByUserEmail(userEmail).map(EmailVerificationTokenEntityMapper::toDomain);
     }
